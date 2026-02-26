@@ -1,3 +1,4 @@
+import { time } from 'console';
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -8,7 +9,16 @@ export const audit = (req: Request, res: Response, next: NextFunction) => {
   
   req.correlationId = correlationId; 
 
-  console.log(`[${new Date().toISOString()}] Action: ${req.method} ${req.url} | ID: ${correlationId}`);
+  const auditInfo = {
+    timestamp: new Date().toISOString(),
+    event: 'API_Request',
+    method: req.method,
+    url: req.url || req.originalUrl,
+    correlationId: correlationId,
+    clientIp: req.ip
+  };
+
+  console.log(JSON.stringify(auditInfo));
   
   next();
 };

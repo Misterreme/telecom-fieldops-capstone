@@ -36,7 +36,42 @@ REJECTED (rechazada por elegibilidad/pago/etc.)
 CANCELLED (cancelada por cliente/empresa)
 
 CONFLICT (estado técnico usado cuando import offline choca con server)
+--------------------------------------------------------------------
 
+ESTADOS BASES
+
+
+DRAFT: borrador
+
+SUBMITTED: enviada
+
+IN_REVIEW: revisión general (datos y consistencia)
+
+ELIGIBILITY_CHECK: depuración persona/cobertura/validación
+
+INVENTORY_RESERVATION: reserva de equipos
+
+SCHEDULED: agenda instalada o entrega
+
+IN_PROGRESS: trabajo en proceso
+
+VERIFICATION: pruebas/confirmación
+
+COMPLETED: cerrado exitoso
+
+ON_HOLD: esperando cliente/stock
+
+REJECTED: rechazado
+
+CANCELLED: cancelado
+
+CONFLICT: conflicto por sync/offline
+
+
+
+Regla común
+
+No se permite ir a COMPLETED sin pasar por VERIFICATION, excepto MONTHLY_PAYMENT (que puede cerrar tras validación de pago).
 
 
 ESTADOS POR PROCESO
@@ -83,6 +118,19 @@ Transaciones principales
     ON_HOLD -> INVENTORY_RESERVATION (cuando se repone stock)
 
 
+    OTRAS 
+
+    ELIGIBILITY_CHECK -> REJECTED
+
+    INVENTORY_RESERVATION -> ON_HOLD (sin stock)
+
+    ON_HOLD -> INVENTORY_RESERVATION (cuando hay stock)
+
+    cualquier estado antes de COMPLETED -> CANCELLED (con motivo)
+
+    sync offline conflict -> CONFLICT (si baseVersion mismatch)
+
+
 2. CLAIM_TROUBLESHOOT (reclamación)
 
     DRAFT
@@ -99,13 +147,16 @@ Transaciones principales
 
     COMPLETED (reclamación cerrada)
 
+
+
+
 Transiciones
 
 DRAFT -> SUBMITTED
 
-SUBMITTED -> TRIAGE
+SUBMITTED -> IN_REVIEW
 
-TRIAGE -> TECH_ASSIGNMENT
+IN_REVIEW -> TECH_ASSIGNMENT
 
 TECH_ASSIGNMENT -> IN_PROGRESS
 
@@ -113,11 +164,23 @@ IN_PROGRESS -> VERIFICATION
 
 VERIFICATION -> COMPLETED
 
-TRIAGE -> ON_HOLD (si requiere información del cliente)
+IN_REVIEW -> ON_HOLD (si requiere información del cliente)
 
 IN_PROGRESS -> INVENTORY_RESERVATION (si requiere reemplazo de equipo)
 
 INVENTORY_RESERVATION -> IN_PROGRESS (cuando equipo está listo)
+
+
+
+OTRAS:
+
+    IN_REVIEW -> ON_HOLD (requiere info del cliente)
+
+    IN_PROGRESS -> INVENTORY_RESERVATION (si requiere reemplazo de equipo)
+
+    INVENTORY_RESERVATION -> IN_PROGRESS
+
+    sync conflict -> CONFLICT
 
 
 3. PLAN_AND_EQUIPMENT_SALE (venta con plan)
@@ -126,7 +189,6 @@ Este caso puede bifurcar:
 si es plan móvil + SIM: no requiere instalación
 
 si es hogar: cae en instalación
-
 
 
 
@@ -154,6 +216,17 @@ Fulfillment puede ir a:
 DELIVERY (entrega de equipo en sucursal) o
 
 SCHEDULED/IN_PROGRESS (instalación)
+
+Donde SCHEDULED representa:
+
+DELIVERY (entrega en sucursal) o
+
+instalación (si el plan es hogar/empresa y requiere visita)
+Ramas:
+
+ELIGIBILITY_CHECK -> REJECTED
+
+INVENTORY_RESERVATION -> ON_HOLD
 
 
 4. EQUIPMENT_ONLY_SALE (venta solo equipo)
