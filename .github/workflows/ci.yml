@@ -51,7 +51,7 @@ jobs:
         run: npm run lint --if-present
 
       - name: Validate OpenAPI from API package
-        run: npm run openapi:validate --if-present
+        run: NODE_PATH=./node_modules npm run openapi:validate --if-present
 
       - name: Test
         run: npm test --if-present
