@@ -1,0 +1,11 @@
+Checklist de seguridad por código:
+- inputs validados con schema
+- outputs sanitizados para evitar XSS
+- rate limit en login y endpoints críticos
+- auth requerido por defecto, allowlist para /health y /auth/login
+- RBAC por endpoint
+- manejo de sesiones: revoke tokens, block user
+- no links externos a assets
+- file validation: size/type/extension/mime
+- no secrets en logs
+- dependencias: revisar vulnerabilidades y justificar paquetes
