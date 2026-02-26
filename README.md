@@ -4,7 +4,9 @@ This project is for student use
 Proyecto: Telecom FieldOps Suite
 
 URL Web: (pendiente)
-URL API: (pendiente)
+URL API: https://telecom-fieldops-capstone-production.up.railway.app/
+- Health en producción: https://telecom-fieldops-capstone-production.up.railway.app/api/v1/health
+
 Swagger/OpenAPI: `apps/api/src/openapi/openapi.yaml`
 
 ## Cómo ejecutar local
