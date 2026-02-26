@@ -18,4 +18,5 @@ export interface ApiError {
   detail: string;
   instance: string;
   correlationId: string;
+  error?: Record<string, string[]>;
 }
