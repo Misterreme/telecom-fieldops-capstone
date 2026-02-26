@@ -46,4 +46,4 @@ Auditoría: (pendiente)
 Offline (LocalStorage + export/import): (pendiente)
 KPIs: (pendiente)
 Mapa Endpoint -> RF: (pendiente)
-Cómo hacer un PR: usar la plantilla en `.github/PULL_REQUEST_TMP.md` y rellenar objetivo, RF/RB, cambios, cómo probar.
+Cómo hacer un PR: usar la plantilla en `.github/PULL_REQUEST_TMP.md` y rellenar objetivo, RF/RB, cambios, cómo probar..
