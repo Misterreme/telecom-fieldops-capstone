@@ -1,0 +1,314 @@
+openapi: 3.1.0
+info:
+  title: Telecom FieldOps API
+  version: 1.0.0
+  description: API first contract for operations, inventory, and work orders with audit and security.
+servers:
+  - url: https://example.com/api/v1
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Roles
+  - name: Catalog
+  - name: Inventory
+  - name: WorkOrders
+  - name: Audit
+  - name: KPIs
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail, correlationId]
+      properties:
+        type: { type: string, example: "urn:telecom:error:validation" }
+        title: { type: string, example: "Validation error" }
+        status: { type: integer, example: 400 }
+        detail: { type: string, example: "Invalid input." }
+        instance: { type: string, example: "/api/v1/work-orders" }
+        correlationId: { type: string, example: "c_123abc" }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+
+    AuditEvent:
+      type: object
+      required: [id, at, actorUserId, action, entityType, entityId]
+      properties:
+        id: { type: string, example: "aud_1001" }
+        at: { type: string, format: date-time }
+        actorUserId: { type: string, example: "usr_001" }
+        action: { type: string, example: "WORK_ORDER_STATUS_CHANGED" }
+        entityType: { type: string, example: "workOrder" }
+        entityId: { type: string, example: "wo_10021" }
+        before: { type: object, additionalProperties: true }
+        after: { type: object, additionalProperties: true }
+        correlationId: { type: string, example: "c_123abc" }
+
+    User:
+      type: object
+      required: [id, username, displayName, isActive]
+      properties:
+        id: { type: string }
+        username: { type: string }
+        displayName: { type: string }
+        isActive: { type: boolean }
+        roleIds:
+          type: array
+          items: { type: string }
+
+    Role:
+      type: object
+      required: [id, name, permissionKeys]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        permissionKeys:
+          type: array
+          items: { type: string }
+
+    Plan:
+      type: object
+      required: [id, name, type, price, currency, isActive]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string, enum: [HOME_INTERNET, MOBILE_DATA, VOICE, TV, BUSINESS] }
+        price: { type: number }
+        currency: { type: string, enum: [DOP, USD] }
+        isActive: { type: boolean }
+
+    Product:
+      type: object
+      required: [id, name, category, isSerialized]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        category: { type: string, enum: [ROUTER, MODEM, ONT, STB, ANTENNA, CABLE, PHONE, TABLET, LAPTOP, SIM] }
+        isSerialized: { type: boolean }
+
+    InventoryItem:
+      type: object
+      required: [id, branchId, productId, qtyAvailable, qtyReserved, updatedAt]
+      properties:
+        id: { type: string }
+        branchId: { type: string }
+        productId: { type: string }
+        qtyAvailable: { type: integer }
+        qtyReserved: { type: integer }
+        updatedAt: { type: string, format: date-time }
+
+    WorkOrderType:
+      type: string
+      enum:
+        - NEW_SERVICE_INSTALL
+        - CLAIM_TROUBLESHOOT
+        - PLAN_AND_EQUIPMENT_SALE
+        - MONTHLY_PAYMENT
+        - EQUIPMENT_REPLACEMENT
+        - SERVICE_UPGRADE
+        - SERVICE_DOWN_OUTAGE
+        - SIM_REPLACEMENT
+
+    WorkOrderStatus:
+      type: string
+      enum:
+        - DRAFT
+        - SUBMITTED
+        - IN_REVIEW
+        - ELIGIBILITY_CHECK
+        - INVENTORY_RESERVATION
+        - SCHEDULED
+        - IN_PROGRESS
+        - VERIFICATION
+        - COMPLETED
+        - CANCELLED
+        - REJECTED
+        - ON_HOLD
+        - CONFLICT
+
+    WorkOrder:
+      type: object
+      required: [id, type, status, customerId, createdAt]
+      properties:
+        id: { type: string }
+        type: { $ref: "#/components/schemas/WorkOrderType" }
+        status: { $ref: "#/components/schemas/WorkOrderStatus" }
+        customerId: { type: string }
+        branchId: { type: string }
+        planId: { type: string, nullable: true }
+        requestedProducts:
+          type: array
+          items:
+            type: object
+            required: [productId, qty]
+            properties:
+              productId: { type: string }
+              qty: { type: integer, minimum: 1 }
+        notes: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateWorkOrderRequest:
+      type: object
+      required: [type, customerId, branchId]
+      properties:
+        type: { $ref: "#/components/schemas/WorkOrderType" }
+        customerId: { type: string }
+        branchId: { type: string }
+        planId: { type: string, nullable: true }
+        requestedProducts:
+          type: array
+          items:
+            type: object
+            required: [productId, qty]
+            properties:
+              productId: { type: string }
+              qty: { type: integer, minimum: 1 }
+        notes: { type: string, maxLength: 500, nullable: true }
+
+    ChangeWorkOrderStatusRequest:
+      type: object
+      required: [newStatus, reason]
+      properties:
+        newStatus: { $ref: "#/components/schemas/WorkOrderStatus" }
+        reason: { type: string, minLength: 3, maxLength: 200 }
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ProblemDetails" }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ProblemDetails" }
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      security: []
+      tags: [Auth]
+      responses:
+        "200":
+          description: ok
+
+  /auth/login:
+    post:
+      security: []
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        "200":
+          description: token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accessToken, expiresAt]
+                properties:
+                  accessToken: { type: string }
+                  expiresAt: { type: string, format: date-time }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users:
+    get:
+      tags: [Users]
+      responses:
+        "200":
+          description: list users
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /users/{userId}/block:
+    post:
+      tags: [Users]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: blocked }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /work-orders:
+    post:
+      tags: [WorkOrders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateWorkOrderRequest" }
+      responses:
+        "201":
+          description: created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkOrder" }
+        "400":
+          description: validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /work-orders/{workOrderId}/status:
+    patch:
+      tags: [WorkOrders]
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChangeWorkOrderStatusRequest" }
+      responses:
+        "200":
+          description: updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkOrder" }
+        "409":
+          description: invalid transition / conflict
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
