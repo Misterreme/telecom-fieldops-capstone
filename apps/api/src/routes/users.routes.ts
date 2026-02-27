@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { userService } from '../domain/services/user.service';
 import { authenticate } from '../middleware/auth';
 import { createRateLimit } from '../middleware/rateLimit';
-import { needs } from '../middleware/rbac';
+import { requirePermissions } from '../middleware/rbac';
 import { validateBody, validateParams } from '../middleware/validate';
 import { logger } from '../infra/logger/logger';
 
@@ -32,7 +32,7 @@ const updateUserSchema = z
 
 router.use(authenticate);
 
-router.get('/', needs(['users:read']), (req, res) => {
+router.get('/', requirePermissions(['users:read']), (req, res) => {
   const users = userService.listUsers();
   res.status(200).json(users);
 
@@ -43,7 +43,7 @@ router.get('/', needs(['users:read']), (req, res) => {
   });
 });
 
-router.post('/', createRateLimit, needs(['users:create']), validateBody(createUserSchema), (req, res, next) => {
+router.post('/', createRateLimit, requirePermissions(['users:create']), validateBody(createUserSchema), (req, res, next) => {
   try {
     const created = userService.createUser(req.body);
     res.status(201).json(created);
@@ -54,7 +54,7 @@ router.post('/', createRateLimit, needs(['users:create']), validateBody(createUs
 
 router.patch(
   '/:id',
-  needs(['users:update']),
+  requirePermissions(['users:update']),
   validateParams(userIdParamsSchema),
   validateBody(updateUserSchema),
   (req, res, next) => {
@@ -75,7 +75,7 @@ router.patch(
   },
 );
 
-router.post('/:id/block', needs(['users:block']), validateParams(userIdParamsSchema), (req, res, next) => {
+router.post('/:id/block', requirePermissions(['users:block']), validateParams(userIdParamsSchema), (req, res, next) => {
   try {
     const blocked = userService.blockUser(req.params.id, req.user!.id, req.correlationId);
     logger.info('User blocked', {
