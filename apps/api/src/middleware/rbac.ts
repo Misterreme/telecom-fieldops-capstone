@@ -1,39 +1,40 @@
-import type { NextFunction, Request, Response } from "express";
-import { AppError } from "./errorHandler";
-import { roleService } from "../domain/services/role.service";
+import type { NextFunction, Request, Response } from 'express';
+import { ApiError } from '../domain/errors/apiError';
 
-/**
- * Requires the authenticated user to have at least one of the given permissions.
- * Must be used after auth() so that req.user (id, roleIds) exists.
- */
-export function requirePermission(...allowedPermissions: string[]) {
-  return (req: Request, _res: Response, next: NextFunction) => {
-    const user = (req as any).user;
-    if (!user?.roleIds?.length) {
-      return next(
-        new AppError({
-          status: 403,
-          title: "Forbidden",
-          detail: "No roles assigned.",
-          type: "urn:telecom:error:forbidden",
-        })
-      );
+const hasPermission = (granted: string[], required: string): boolean => {
+  if (granted.includes('*')) {
+    return true;
+  }
+
+  if (granted.includes(required)) {
+    return true;
+  }
+
+  const [namespace] = required.split(':');
+  if (!namespace) {
+    return false;
+  }
+
+  return granted.includes(`${namespace}:*`);
+};
+
+export const needs = (requiredPermissions: string[]) => {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      next(new ApiError(401, 'Unauthorized', 'Authentication required.', 'urn:telecom:error:missing-token'));
+      return;
     }
 
-    const userPermissions = roleService.getPermissionKeysForUser(user.roleIds);
-    const hasPermission = allowedPermissions.some((p) => userPermissions.includes(p));
+    const granted = req.user.permissions;
+    const authorized = requiredPermissions.every((permission) => hasPermission(granted, permission));
 
-    if (!hasPermission) {
-      return next(
-        new AppError({
-          status: 403,
-          title: "Forbidden",
-          detail: `Required permission: ${allowedPermissions.join(" or ")}`,
-          type: "urn:telecom:error:forbidden",
-        })
+    if (!authorized) {
+      next(
+        new ApiError(403, 'Forbidden', 'Insufficient permissions.', 'urn:telecom:error:missing-permission'),
       );
+      return;
     }
 
     next();
   };
-}
+};

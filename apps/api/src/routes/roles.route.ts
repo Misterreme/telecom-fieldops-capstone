@@ -1,20 +1,15 @@
-import { Router, Request, Response } from "express";
-import { auth } from "../middleware/auth";
-import { requirePermission } from "../middleware/rbac";
-import { roleService } from "../domain/services/role.service";
+import { Router } from 'express';
+import { userService } from '../domain/services/user.service';
+import { authenticate } from '../middleware/auth';
+import { needs } from '../middleware/rbac';
 
-export function rolesRouter() {
-  const router = Router();
+const router = Router();
 
-  // GET /api/v1/roles — list roles (auth + roles:read permission)
-  router.get(
-    "/",
-    auth(),
-    requirePermission("roles:read"),
-    (_req: Request, res: Response) => {
-      res.status(200).json(roleService.listRoles());
-    }
-  );
+router.use(authenticate);
 
-  return router;
-}
+router.get('/', needs(['roles:read']), (_req, res) => {
+  const roles = userService.listRoles();
+  res.status(200).json(roles);
+});
+
+export default router;
