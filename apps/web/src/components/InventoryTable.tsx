@@ -1,5 +1,12 @@
 import type { CSSProperties } from 'react';
-import type { InventoryRow } from '../services/apiClient';
+
+type InventoryRow = {
+  id: string;
+  productName: string;
+  qtyAvailable: number;
+  qtyReserved: number;
+  updatedAt: string;
+};
 
 type Props = {
   rows: InventoryRow[];

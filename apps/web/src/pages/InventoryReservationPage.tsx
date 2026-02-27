@@ -1,9 +1,34 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import InventoryTable from '../components/InventoryTable';
 import ReservationForm from '../components/ReservationForm';
-import { apiClient, type Branch, type InventoryRow, type Product } from '../services/apiClient';
+import { apiClient } from '../services/apiClient';
+
+type Branch = {
+  id: string;
+  name: string;
+  isMain: boolean;
+};
+
+type Product = {
+  id: string;
+  name: string;
+  category: string;
+  isSerialized: boolean;
+};
+
+type InventoryRow = {
+  id: string;
+  branchId: string;
+  productId: string;
+  productName: string;
+  qtyAvailable: number;
+  qtyReserved: number;
+  updatedAt: string;
+};
 
 export default function InventoryReservationPage() {
+  const navigate = useNavigate();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState('');
@@ -15,8 +40,8 @@ export default function InventoryReservationPage() {
     const loadInitialData = async () => {
       try {
         const [branchRows, productRows] = await Promise.all([
-          apiClient.getBranches(),
-          apiClient.getProducts()
+          apiClient.get<Branch[]>('/api/v1/inventory/branches'),
+          apiClient.get<Product[]>('/api/v1/inventory/products')
         ]);
         setBranches(branchRows);
         setProducts(productRows);
@@ -37,7 +62,9 @@ export default function InventoryReservationPage() {
     }
     const loadInventory = async () => {
       try {
-        const rows = await apiClient.getInventory(selectedBranchId);
+        const rows = await apiClient.get<InventoryRow[]>(
+          `/api/v1/inventory?branchId=${encodeURIComponent(selectedBranchId)}`
+        );
         setInventoryRows(rows);
       } catch (error) {
         setMessage(error instanceof Error ? error.message : 'Error cargando inventario');
@@ -51,7 +78,9 @@ export default function InventoryReservationPage() {
     if (!selectedBranchId) {
       return;
     }
-    const rows = await apiClient.getInventory(selectedBranchId);
+    const rows = await apiClient.get<InventoryRow[]>(
+      `/api/v1/inventory?branchId=${encodeURIComponent(selectedBranchId)}`
+    );
     setInventoryRows(rows);
   };
 
@@ -63,7 +92,7 @@ export default function InventoryReservationPage() {
     setLoading(true);
     setMessage('');
     try {
-      await apiClient.reserveInventory({
+      await apiClient.post('/api/v1/inventory/reservations', {
         workOrderId: input.workOrderId,
         branchId: selectedBranchId,
         items: [{ productId: input.productId, qty: input.qty }]
@@ -81,7 +110,7 @@ export default function InventoryReservationPage() {
     setLoading(true);
     setMessage('');
     try {
-      await apiClient.releaseReservation(workOrderId);
+      await apiClient.delete(`/api/v1/inventory/reservations/${encodeURIComponent(workOrderId)}`);
       await refreshInventory();
       setMessage('Reserva liberada correctamente.');
     } catch (error) {
@@ -92,8 +121,21 @@ export default function InventoryReservationPage() {
   };
 
   return (
-    <main style={{ fontFamily: 'sans-serif', padding: '1rem', maxWidth: 960, margin: '0 auto' }}>
-      <h1>RF-07 Reservar inventario para solicitud</h1>
+    <main className="min-h-screen bg-slate-900 text-slate-100 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl mx-auto">
+      <header className="mb-6 pb-5 border-b border-slate-700">
+        <button
+          onClick={() => navigate('/home')}
+          className="text-xs text-slate-500 hover:text-slate-300 transition-colors mb-2 flex items-center gap-1"
+        >
+          ← Panel Principal
+        </button>
+        <p className="text-[0.65rem] tracking-[0.25em] uppercase text-emerald-400 font-medium mb-1">
+          Gestión de Inventario
+        </p>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-50">
+          Reservar Inventario
+        </h1>
+      </header>
 
       <section style={{ marginBottom: '1rem' }}>
         <label style={{ display: 'grid', gap: '0.35rem', maxWidth: 360 }}>
