@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "npx tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "openapi:validate": "node ../../scripts/validate-openapi.js src/openapi/openapi.yaml",
