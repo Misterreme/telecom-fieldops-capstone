@@ -1,21 +1,27 @@
-import crypto from "node:crypto";
-import { Request, Response, NextFunction } from "express";
+import type { Request } from "express";
+import { logger, baseReqLog } from "../infra/logger/logger";
 
-export function withAudit(action: string, entityType: string) {
-  return (req: Request, _res: Response, next: NextFunction): void => {
-    const event = {
-      id: `aud_${crypto.randomUUID().replaceAll("-", "").slice(0, 12)}`,
-      at: new Date().toISOString(),
-      actorUserId: req.user?.id ?? "anonymous",
-      action,
-      entityType,
-      entityId: req.params.userId ?? "n/a",
-      before: undefined,
-      after: req.body,
-      correlationId: req.correlationId,
-    };
-    req.auditEvents = req.auditEvents ?? [];
-    req.auditEvents.push(event);
-    next();
-  };
+type AuditPayload = {
+  action: string;
+  entityType: string;
+  entityId: string;
+  before: any;
+  after: any;
+};
+
+export async function writeAudit(req: Request, payload: AuditPayload) {
+  const user = (req as any).user;
+  const actorUserId = user?.id ?? "anonymous";
+  const correlationId = (req as any).correlationId ?? "c_unknown";
+
+  logger.info(
+    {
+      ...baseReqLog(req),
+      actorUserId,
+      correlationId,
+      audit: payload,
+    },
+    "AUDIT_EVENT"
+  );
+
 }

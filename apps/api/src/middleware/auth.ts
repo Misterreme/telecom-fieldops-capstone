@@ -1,76 +1,53 @@
-import { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from 'express';
+import { authService } from '../domain/services/auth.service';
+import { ApiError } from '../domain/errors/apiError';
+import { userRepository } from '../infra/repositories/user.repo';
 
-type AuthUser = {
-  id: string;
-  username: string;
-  permissions: string[];
-  isActive: boolean;
+const extractBearerToken = (req: Request): string => {
+  const header = req.headers.authorization;
+  if (!header) {
+    throw new ApiError(401, 'Unauthorized', 'Missing Bearer token.', 'urn:telecom:error:missing-token');
+  }
+
+  const [scheme, token] = header.split(' ');
+  if (scheme !== 'Bearer' || !token) {
+    throw new ApiError(401, 'Unauthorized', 'Invalid Authorization header.', 'urn:telecom:error:invalid-token');
+  }
+
+  return token;
 };
 
-const rolePermissions: Record<string, string[]> = {
-  admin: ["USER_VIEW", "USER_CREATE", "USER_EDIT", "USER_BLOCK"],
-  manager: ["USER_VIEW", "USER_CREATE", "USER_EDIT", "USER_BLOCK"],
-  tech: ["USER_VIEW"],
-};
+export const authenticate = (req: Request, _res: Response, next: NextFunction): void => {
+  try {
+    const token = extractBearerToken(req);
+    const claims = authService.verifyAccessToken(token);
+    const user = userRepository.findById(claims.userId);
 
-function userFromToken(token: string): AuthUser | undefined {
-  const normalized = token.trim().toLowerCase();
-  if (!["admin", "manager", "tech", "blocked"].includes(normalized)) {
-    return undefined;
-  }
-  if (normalized === "blocked") {
-    return {
-      id: "usr_blocked",
-      username: "blocked",
-      permissions: ["USER_VIEW"],
-      isActive: false,
-    };
-  }
-
-  return {
-    id: `usr_${normalized}`,
-    username: normalized,
-    permissions: rolePermissions[normalized],
-    isActive: true,
-  };
-}
-
-export function authRequired(req: Request, res: Response, next: NextFunction): void {
-  const header = req.header("authorization");
-  if (!header?.startsWith("Bearer ")) {
-    res.status(401).json({
-      type: "urn:telecom:error:unauthorized",
-      title: "Unauthorized",
-      status: 401,
-      detail: "Missing bearer token.",
-      correlationId: req.correlationId,
-    });
-    return;
-  }
-
-  const token = header.slice("Bearer ".length);
-  const user = userFromToken(token);
-  if (!user) {
-    res.status(401).json({
-      type: "urn:telecom:error:unauthorized",
-      title: "Unauthorized",
-      status: 401,
-      detail: "Invalid bearer token.",
-      correlationId: req.correlationId,
-    });
-    return;
-  }
-
-  req.user = user;
-  next();
-}
-
-declare global {
-  namespace Express {
-    interface Request {
-      correlationId?: string;
-      user?: AuthUser;
-      auditEvents?: Array<Record<string, unknown>>;
+    if (!user) {
+      throw new ApiError(401, 'Unauthorized', 'Invalid token subject.', 'urn:telecom:error:invalid-token');
     }
+
+    if (user.blocked) {
+      throw new ApiError(403, 'Forbidden', 'User is blocked.', 'urn:telecom:error:user-blocked');
+    }
+
+    const currentPermissions = userRepository.getPermissionKeysForRoles(user.roles);
+
+    req.user = {
+      id: user.id,
+      email: user.email,
+      roles: user.roles,
+      permissions: currentPermissions,
+      blocked: user.blocked,
+      tokenJti: claims.jti,
+    };
+
+    next();
+  } catch (error) {
+    next(error);
   }
+};
+
+export function auth() {
+  return authenticate;
 }
