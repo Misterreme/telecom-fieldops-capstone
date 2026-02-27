@@ -100,6 +100,14 @@ components:
         category: { type: string, enum: [ROUTER, MODEM, ONT, STB, ANTENNA, CABLE, PHONE, TABLET, LAPTOP, SIM] }
         isSerialized: { type: boolean }
 
+    Branch:
+      type: object
+      required: [id, name, isMain]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        isMain: { type: boolean }
+
     InventoryItem:
       type: object
       required: [id, branchId, productId, qtyAvailable, qtyReserved, updatedAt]
