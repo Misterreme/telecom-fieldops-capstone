@@ -1,8 +1,4 @@
-export type Role = {
-    id: string;
-    name: string;
-    permissionKeys: string[];
-}
+import type { Role } from '../../domain/models/types';
 
 const ROLES: Role[] = [
     { id: "role_admin", name: "Administrator", permissionKeys: ["roles:read", "roles:write", "users:read", "users:write", "users:block"] },
