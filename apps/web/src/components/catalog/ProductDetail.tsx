@@ -1,8 +1,8 @@
-import React from 'react';
-import type { Products } from '../../types/product';
+import React from "react";
+import type { Product } from "../../types/product";
 
 interface ProductDetailProps {
-  product: Products;
+  product: Product;
   onClose: () => void;
 }
 
