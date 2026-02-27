@@ -8,7 +8,7 @@ import { AppError } from "../middleware/errorHandler";
 import { writeAudit } from "../middleware/audit";
 import { baseReqLog, logger } from "../infra/logger/logger";
 
-// Demo users (luego reemplazar por Prisma repo)
+// Demo users (in-memory)
 const USERS = [
   { id: "usr_admin_01", username: "admin", password: "admin123", roleIds: ["role_admin"], isActive: true },
   { id: "usr_sales_01", username: "sales1", password: "sales123", roleIds: ["role_sales"], isActive: true },
@@ -71,9 +71,9 @@ export function authRouter() {
     }
   );
 
-  // POST /api/v1/auth/logout (opcional: si hacen blacklist)
+  // POST /api/v1/auth/logout 
   router.post("/logout", async (req, res) => {
-    // Para capstone: puede ser "no-op" o insertar token en blacklist.
+   
     res.status(200).json({ status: "ok" });
   });
 
