@@ -7,6 +7,7 @@ export interface Product {
   name: string;
   category: ProductCategory; // Usar el tipo específico, no string
   isSerialized: boolean;
+  description?: string;
 }
 
 export interface InventoryItem {

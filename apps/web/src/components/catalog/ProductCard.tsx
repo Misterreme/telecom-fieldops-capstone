@@ -1,9 +1,9 @@
-import React from 'react';
-import type { Products } from '../../types/product';
+import React from "react";
+import type { Product } from "../../types/product";
 
 interface ProductCardProps {
-  product: Products;
-  onSelect: (product: Products) => void;
+  product: Product;
+  onSelect: (product: Product) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) => {
