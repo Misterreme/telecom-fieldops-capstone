@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "build": "node node_modules/typescript/bin/tsc -p tsconfig.json",
+    "postinstall": "prisma generate",
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "openapi:validate": "node ../../scripts/validate-openapi.js src/openapi/openapi.yaml",
