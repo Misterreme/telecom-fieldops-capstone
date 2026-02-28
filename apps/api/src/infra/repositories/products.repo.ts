@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+﻿import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import type { Product, ProductCategory } from '../../domain/models/types';
@@ -19,11 +19,31 @@ interface SeedData {
   products: Product[];
 }
 
-const seedPath = path.resolve(__dirname, '../../../../../scripts/seed-data.json');
+const loadSeedData = (): SeedData => {
+  const candidates = [
+    path.resolve(__dirname, '../../../../../scripts/seed-data.json'), // monorepo: src|dist/infra/repositories -> repo root
+    path.resolve(__dirname, '../../../scripts/seed-data.json'), // container: /app/dist/infra/repositories -> /app/scripts
+  ];
+
+  for (const seedPath of candidates) {
+    try {
+      if (fs.existsSync(seedPath)) {
+        const raw = fs.readFileSync(seedPath, 'utf-8');
+        const data = JSON.parse(raw) as SeedData;
+        if (Array.isArray(data.products)) {
+          return data;
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return { products: [] };
+};
 
 const loadSeedProducts = (): Product[] => {
-  const raw = fs.readFileSync(seedPath, 'utf-8');
-  const data = JSON.parse(raw) as SeedData;
+  const data = loadSeedData();
   return data.products;
 };
 
@@ -75,3 +95,4 @@ export const productsRepository = {
     return true;
   },
 };
+

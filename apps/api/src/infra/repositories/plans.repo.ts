@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+﻿import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import type { Plan, PlanCategory, PlanCurrency, PlanStatus, PlanType } from '../../domain/models/types';
@@ -44,7 +44,28 @@ interface SeedData {
   plans: SeedPlan[];
 }
 
-const seedPath = path.resolve(__dirname, '../../../../../scripts/seed-data.json');
+const loadSeedData = (): SeedData => {
+  const candidates = [
+    path.resolve(__dirname, '../../../../../scripts/seed-data.json'), // monorepo: src|dist/infra/repositories -> repo root
+    path.resolve(__dirname, '../../../scripts/seed-data.json'), // container: /app/dist/infra/repositories -> /app/scripts
+  ];
+
+  for (const seedPath of candidates) {
+    try {
+      if (fs.existsSync(seedPath)) {
+        const raw = fs.readFileSync(seedPath, 'utf-8');
+        const data = JSON.parse(raw) as SeedData;
+        if (Array.isArray(data.plans)) {
+          return data;
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return { plans: [] };
+};
 
 const typeToCategory: Record<PlanType, PlanCategory> = {
   HOME_INTERNET: 'RESIDENCIAL',
@@ -56,19 +77,19 @@ const typeToCategory: Record<PlanType, PlanCategory> = {
 
 const defaultsById: Record<string, Pick<Plan, 'description' | 'downloadSpeedMbps' | 'uploadSpeedMbps' | 'dataLimitGB'>> = {
   plan_home_200: {
-    description: 'Fibra óptica simétrica 200 Mbps',
+    description: 'Fibra Ã³ptica simÃ©trica 200 Mbps',
     downloadSpeedMbps: 200,
     uploadSpeedMbps: 200,
     dataLimitGB: null,
   },
   plan_home_500: {
-    description: 'Fibra óptica simétrica 500 Mbps',
+    description: 'Fibra Ã³ptica simÃ©trica 500 Mbps',
     downloadSpeedMbps: 500,
     uploadSpeedMbps: 500,
     dataLimitGB: null,
   },
   plan_mobile_20gb: {
-    description: 'Plan móvil con 20 GB de datos 5G',
+    description: 'Plan mÃ³vil con 20 GB de datos 5G',
     downloadSpeedMbps: null,
     uploadSpeedMbps: null,
     dataLimitGB: 20,
@@ -99,8 +120,7 @@ const defaultPlanFields = (seedPlan: SeedPlan): Pick<Plan, 'description' | 'down
 };
 
 const loadSeedPlans = (): Plan[] => {
-  const raw = fs.readFileSync(seedPath, 'utf-8');
-  const data = JSON.parse(raw) as SeedData;
+  const data = loadSeedData();
   const now = new Date().toISOString();
 
   return data.plans.map((seedPlan) => {
@@ -208,3 +228,4 @@ export const plansRepository = {
     return true;
   },
 };
+

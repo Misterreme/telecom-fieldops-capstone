@@ -82,7 +82,7 @@ describe('Catálogo CRUD', () => {
       const result = await createPlan(dto);
       expect(result.id).toBe('plan_new');
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/plans'),
+        expect.stringContaining('/api/v1/catalog/plans'),
         expect.objectContaining({ method: 'POST' })
       );
     });
@@ -137,7 +137,7 @@ describe('Catálogo CRUD', () => {
       const result = await createProduct(dto);
       expect(result.id).toBe('prod_new');
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/products'),
+        expect.stringContaining('/api/v1/catalog/products'),
         expect.objectContaining({ method: 'POST' })
       );
     });
