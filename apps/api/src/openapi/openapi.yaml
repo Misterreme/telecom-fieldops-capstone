@@ -11,6 +11,9 @@ tags:
   - name: Auth
   - name: Users
   - name: Roles
+  - name: Plans
+  - name: Catalog
+  - name: Inventory
 
 components:
   securitySchemes:
@@ -180,7 +183,17 @@ components:
 
     Plan:
       type: object
-      required: [id, name, type, price, currency, isActive]
+      required:
+        - id
+        - name
+        - type
+        - price
+        - currency
+        - isActive
+        - description
+        - category
+        - status
+        - monthlyPrice
       properties:
         id: { type: string }
         name: { type: string }
@@ -188,6 +201,47 @@ components:
         price: { type: number }
         currency: { type: string, enum: [DOP, USD] }
         isActive: { type: boolean }
+        description: { type: string }
+        category: { type: string, enum: [RESIDENCIAL, MOVIL, EMPRESARIAL, TV] }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }
+        monthlyPrice: { type: number }
+        downloadSpeedMbps: { type: integer, nullable: true }
+        uploadSpeedMbps: { type: integer, nullable: true }
+        dataLimitGB: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreatePlanRequest:
+      type: object
+      required: [name, type, price, currency]
+      properties:
+        name: { type: string }
+        type: { type: string, enum: [HOME_INTERNET, MOBILE_DATA, VOICE, TV, BUSINESS] }
+        price: { type: number, minimum: 0 }
+        currency: { type: string, enum: [DOP, USD] }
+        isActive: { type: boolean }
+        description: { type: string }
+        category: { type: string, enum: [RESIDENCIAL, MOVIL, EMPRESARIAL, TV] }
+        downloadSpeedMbps: { type: integer, minimum: 0, nullable: true }
+        uploadSpeedMbps: { type: integer, minimum: 0, nullable: true }
+        dataLimitGB: { type: integer, minimum: 0, nullable: true }
+
+    UpdatePlanRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string }
+        type: { type: string, enum: [HOME_INTERNET, MOBILE_DATA, VOICE, TV, BUSINESS] }
+        price: { type: number, minimum: 0 }
+        currency: { type: string, enum: [DOP, USD] }
+        isActive: { type: boolean }
+        description: { type: string }
+        category: { type: string, enum: [RESIDENCIAL, MOVIL, EMPRESARIAL, TV] }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }
+        monthlyPrice: { type: number, minimum: 0 }
+        downloadSpeedMbps: { type: integer, minimum: 0, nullable: true }
+        uploadSpeedMbps: { type: integer, minimum: 0, nullable: true }
+        dataLimitGB: { type: integer, minimum: 0, nullable: true }
 
     Product:
       type: object
@@ -546,17 +600,115 @@ paths:
 
   /catalog/plans:
     get:
-      tags: [Catalog]
+      tags: [Plans]
+      summary: List plans
       responses:
         "200":
-          description: list plans
+          description: plans list
           content:
             application/json:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/Plan" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Plans]
+      summary: Create plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreatePlanRequest" }
+      responses:
+        "201":
+          description: plan created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Plan" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /catalog/plans/{id}:
+    get:
+      tags: [Plans]
+      summary: Get plan by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: plan detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Plan" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [Plans]
+      summary: Update plan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdatePlanRequest" }
+      responses:
+        "200":
+          description: plan updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Plan" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Plans]
+      summary: Delete plan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: plan deleted
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /catalog/plans/{id}/activate:
+    patch:
+      tags: [Plans]
+      summary: Activate plan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: plan activated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Plan" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /catalog/plans/{id}/deactivate:
+    patch:
+      tags: [Plans]
+      summary: Deactivate plan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: plan deactivated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Plan" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   /catalog/products:
     get:

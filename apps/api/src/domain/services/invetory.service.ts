@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { ApiError } from '../errors/apiError';
 
 type InventoryRow = {
   id: string;
@@ -92,22 +93,32 @@ export class InventoryService {
 
   reserveForRequest(input: ReserveRequest): ReservationRecord {
     if (!input.workOrderId.trim()) {
-      throw new Error('workOrderId is required');
+      throw new ApiError(400, 'Validation Error', 'workOrderId is required', 'urn:telecom:error:validation');
     }
     if (!input.branchId.trim()) {
-      throw new Error('branchId is required');
+      throw new ApiError(400, 'Validation Error', 'branchId is required', 'urn:telecom:error:validation');
     }
     if (!Array.isArray(input.items) || input.items.length === 0) {
-      throw new Error('At least one item is required');
+      throw new ApiError(400, 'Validation Error', 'At least one item is required', 'urn:telecom:error:validation');
     }
     if (this.reservations.has(input.workOrderId)) {
-      throw new Error(`Work order ${input.workOrderId} already has a reservation`);
+      throw new ApiError(
+        409,
+        'Conflict',
+        `Work order ${input.workOrderId} already has a reservation`,
+        'urn:telecom:error:inventory-reservation-conflict'
+      );
     }
 
     const missing: string[] = [];
     for (const item of input.items) {
       if (!item.productId || item.qty <= 0) {
-        throw new Error('Each item must include productId and qty > 0');
+        throw new ApiError(
+          400,
+          'Validation Error',
+          'Each item must include productId and qty > 0',
+          'urn:telecom:error:validation'
+        );
       }
       const stock = this.inventory.find(
         (row) => row.branchId === input.branchId && row.productId === item.productId
@@ -118,8 +129,11 @@ export class InventoryService {
     }
 
     if (missing.length > 0) {
-      throw new Error(
-        `Insufficient stock for products: ${missing.join(', ')} in branch ${input.branchId}`
+      throw new ApiError(
+        409,
+        'Conflict',
+        `Insufficient stock for products: ${missing.join(', ')} in branch ${input.branchId}`,
+        'urn:telecom:error:inventory-insufficient-stock'
       );
     }
 
@@ -148,7 +162,12 @@ export class InventoryService {
   releaseForRequest(workOrderId: string): ReservationRecord {
     const reservation = this.reservations.get(workOrderId);
     if (!reservation) {
-      throw new Error(`Reservation for ${workOrderId} was not found`);
+      throw new ApiError(
+        404,
+        'Not Found',
+        `Reservation for ${workOrderId} was not found`,
+        'urn:telecom:error:inventory-reservation-not-found'
+      );
     }
 
     for (const item of reservation.items) {

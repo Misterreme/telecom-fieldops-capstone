@@ -6,94 +6,68 @@ interface ProductCardProps {
   onSelect: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) => {
-  const getCategoryColor = (category: string) => {
-    if (category.includes('INTERNET') || category.includes('PLAN')) {
-      return { bg: '#e3f2fd', text: '#0d47a1' };
-    }
-    return { bg: '#f5f5f5', text: '#424242' };
-  };
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  ROUTER:  { bg: 'bg-sky-500/15',     text: 'text-sky-400' },
+  MODEM:   { bg: 'bg-indigo-500/15',  text: 'text-indigo-400' },
+  ONT:     { bg: 'bg-violet-500/15',  text: 'text-violet-400' },
+  STB:     { bg: 'bg-pink-500/15',    text: 'text-pink-400' },
+  CABLE:   { bg: 'bg-amber-500/15',   text: 'text-amber-400' },
+  SIM:     { bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
+  ANTENNA: { bg: 'bg-rose-500/15',    text: 'text-rose-400' },
+};
 
-  const colors = getCategoryColor(product.category);
+const CATEGORY_ACCENT: Record<string, string> = {
+  ROUTER: 'bg-sky-500',
+  MODEM: 'bg-indigo-500',
+  ONT: 'bg-violet-500',
+  STB: 'bg-pink-500',
+  CABLE: 'bg-amber-500',
+  SIM: 'bg-emerald-500',
+  ANTENNA: 'bg-rose-500',
+};
+
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) => {
+  const colors = CATEGORY_COLORS[product.category] ?? { bg: 'bg-slate-500/15', text: 'text-slate-400' };
+  const accent = CATEGORY_ACCENT[product.category] ?? 'bg-slate-500';
 
   return (
-    <div className="product-card" style={{
-      border: '1px solid #e0e0e0',
-      borderRadius: '8px',
-      padding: '20px',
-      backgroundColor: '#ffffff',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-      transition: 'transform 0.2s ease'
-    }}>
-      <div style={{ marginBottom: '12px' }}>
-        <span style={{
-          fontSize: '0.7rem',
-          fontWeight: 'bold',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          backgroundColor: colors.bg,
-          color: colors.text,
-          textTransform: 'uppercase'
-        }}>
-          {product.category.replace('_', ' ')}
+    <div className="group relative bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col hover:border-slate-500 transition-all duration-200 hover:shadow-lg hover:shadow-slate-900/50">
+      {/* Category accent bar */}
+      <div className={`h-1 ${accent}`} />
+
+      <div className="p-5 flex flex-col flex-1 gap-3">
+        {/* Category badge */}
+        <span className={`self-start px-2.5 py-1 rounded-md text-[0.65rem] font-bold uppercase tracking-wider ${colors.bg} ${colors.text}`}>
+          {product.category}
         </span>
-      </div>
 
-      <h3 style={{ 
-        margin: '0 0 8px 0', 
-        fontSize: '1.2rem', 
-        color: '#212121',
-        lineHeight: '1.4'
-      }}>
-        {product.name}
-      </h3>
+        {/* Name */}
+        <h3 className="text-base font-bold text-slate-200 group-hover:text-slate-50 transition-colors leading-snug">
+          {product.name}
+        </h3>
 
-      <p style={{ 
-        margin: '0 0 16px 0', 
-        fontSize: '0.9rem', 
-        color: '#757575',
-        flexGrow: 1 
-      }}>
-        {product.description}
-      </p>
-
-      <div style={{ 
-        borderTop: '1px solid #f0f0f0', 
-        paddingTop: '12px',
-        fontSize: '0.8rem',
-        color: '#9e9e9e'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <span>Identificador:</span>
-          <span style={{ color: '#424242', fontWeight: '500' }}>{product.id}</span>
+        {/* Details */}
+        <div className="mt-auto pt-3 border-t border-slate-700 space-y-1.5 text-xs">
+          <div className="flex justify-between text-slate-500">
+            <span>ID</span>
+            <span className="text-slate-400 font-mono text-[0.65rem]">{product.id}</span>
+          </div>
+          <div className="flex justify-between text-slate-500">
+            <span>Inventario</span>
+            <span className={product.isSerialized ? 'text-amber-400' : 'text-emerald-400'}>
+              {product.isSerialized ? 'Serializado' : 'No Serializado'}
+            </span>
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>Tipo de Inventario:</span>
-          <span style={{ color: '#424242', fontWeight: '500' }}>
-            {product.isSerialized ? 'Serializado (Control Individual)' : 'No Serializado (Granel)'}
-          </span>
-        </div>
-      </div>
 
-      <button 
-        onClick={() => onSelect(product)}
-        style={{
-          marginTop: '20px',
-          padding: '10px',
-          backgroundColor: '#0056b3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontWeight: '500',
-          width: '100%'
-        }}
-      >
-        Ver Detalle de Equipo
-      </button>
+        {/* Action */}
+        <button
+          onClick={() => onSelect(product)}
+          className="mt-2 w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors active:scale-[0.98]"
+        >
+          Ver Detalle
+        </button>
+      </div>
     </div>
   );
 };
