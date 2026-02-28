@@ -37,7 +37,9 @@ export default function InventoryTable({ rows }: Props) {
 const cellHeader: CSSProperties = {
   borderBottom: '1px solid #ddd',
   textAlign: 'left',
-  padding: '0.5rem'
+  padding: '0.5rem',
+  backgroundColor: '#007bff',
+  color: 'white'
 };
 
 const cell: CSSProperties = {

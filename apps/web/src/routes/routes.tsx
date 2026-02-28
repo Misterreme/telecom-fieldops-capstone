@@ -13,7 +13,7 @@ export const router = createBrowserRouter([
                 element: <LoginPage />
             },
             {
-                path: "reserve",
+                path: "inventory",
                 element: <InventoryReservationPage />
             }
         ]

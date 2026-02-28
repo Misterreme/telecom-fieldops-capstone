@@ -1,25 +1,18 @@
 import { useEffect, useState } from 'react';
 import InventoryTable from '../components/InventoryTable';
-import ReservationForm from '../components/ReservationForm';
-import { apiClient, type Branch, type InventoryRow, type Product } from '../services/apiClient';
+import { apiClient, type Branch, type InventoryRow } from '../services/apiClient';
 
 export default function InventoryReservationPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState('');
   const [inventoryRows, setInventoryRows] = useState<InventoryRow[]>([]);
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [branchRows, productRows] = await Promise.all([
-          apiClient.getBranches(),
-          apiClient.getProducts()
-        ]);
+        const branchRows = await apiClient.getBranches();
         setBranches(branchRows);
-        setProducts(productRows);
         const firstBranchId = branchRows[0]?.id ?? '';
         setSelectedBranchId(firstBranchId);
       } catch (error) {
@@ -55,45 +48,9 @@ export default function InventoryReservationPage() {
     setInventoryRows(rows);
   };
 
-  const handleReserve = async (input: { workOrderId: string; productId: string; qty: number }) => {
-    if (!selectedBranchId) {
-      setMessage('Seleccione una sucursal');
-      return;
-    }
-    setLoading(true);
-    setMessage('');
-    try {
-      await apiClient.reserveInventory({
-        workOrderId: input.workOrderId,
-        branchId: selectedBranchId,
-        items: [{ productId: input.productId, qty: input.qty }]
-      });
-      await refreshInventory();
-      setMessage('Reserva creada correctamente.');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'No se pudo reservar');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRelease = async (workOrderId: string) => {
-    setLoading(true);
-    setMessage('');
-    try {
-      await apiClient.releaseReservation(workOrderId);
-      await refreshInventory();
-      setMessage('Reserva liberada correctamente.');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'No se pudo liberar');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <main style={{ fontFamily: 'sans-serif', padding: '1rem', maxWidth: 960, margin: '0 auto' }}>
-      <h1>RF-07 Reservar inventario para solicitud</h1>
+    <main style={{ fontFamily: 'sans-serif', padding: '1rem', maxWidth: 960, margin: '0 auto', backgroundColor: 'white', borderRadius: 8, boxShadow: '0 0 8px rgba(0,0,0,0.1)' }}>
+      <h1 style={{ color: '#007bff' }}>Inventario por sucursal</h1>
 
       <section style={{ marginBottom: '1rem' }}>
         <label style={{ display: 'grid', gap: '0.35rem', maxWidth: 360 }}>
@@ -112,14 +69,7 @@ export default function InventoryReservationPage() {
         </label>
       </section>
 
-      <ReservationForm
-        products={products}
-        loading={loading}
-        onReserve={handleReserve}
-        onRelease={handleRelease}
-      />
-
-      {message ? <p style={{ marginTop: '0.75rem' }}>{message}</p> : null}
+      {message ? <p style={{ marginTop: '0.75rem', color: 'red' }}>{message}</p> : null}
 
       <InventoryTable rows={inventoryRows} />
     </main>
