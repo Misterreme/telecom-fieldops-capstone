@@ -86,7 +86,7 @@ describe('RF-04: Catálogo de planes', () => {
       const result = await fetchPlans({ forceRefresh: true });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/plans'),
+        expect.stringContaining('/api/v1/catalog/plans'),
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
         })
