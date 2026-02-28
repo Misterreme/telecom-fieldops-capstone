@@ -10,6 +10,9 @@ dist/
 .env.local
 .env.*.local
 
+# Prisma generated client (run `npx prisma generate` after clone or schema change)
+/src/generated/prisma
+
 # Logs & coverage
 *.log
 coverage/
