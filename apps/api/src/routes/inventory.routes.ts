@@ -51,12 +51,14 @@ router.post('/inventory/reservations', validateBody(reserveInventorySchema), (re
   }
 });
 
-router.delete('/inventory/reservations/:workOrderId', validateParams(releaseReservationParamsSchema), (req: Request, res: Response, next: NextFunction) => {
+router.delete('/inventory/reservations/:workOrderId', (req: Request, res: Response) => {
   try {
     const result = inventoryService.releaseForRequest(req.params.workOrderId);
     res.status(200).json(result);
   } catch (error) {
-    next(error);
+    const message = error instanceof Error ? error.message : 'Unexpected error';
+    const status = message.includes('not found') ? 404 : 400;
+    res.status(status).json({ message });
   }
 });
 
