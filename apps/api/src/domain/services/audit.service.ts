@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { AuditAction } from '../models/types';
-import { auditRepository } from '../../infra/repositories/audit.repo';
+import {
+  auditRepository,
+  type ListAuditOptions,
+} from '../../infra/repositories/audit.repo';
 
 interface RecordAuditInput {
   actorUserId: string | null;
@@ -27,7 +30,23 @@ export const auditService = {
     });
   },
 
-  list() {
-    return auditRepository.list();
+  list(opts?: ListAuditOptions) {
+    return auditRepository.list(opts);
+  },
+
+  getById(id: string) {
+    return auditRepository.getById(id);
+  },
+
+  getHistory(entityType: string, entityId: string) {
+    return auditRepository.getHistory(entityType, entityId);
+  },
+
+  getByUser(actorUserId: string, limit?: number) {
+    return auditRepository.getByUser(actorUserId, limit);
+  },
+
+  getByDateRange(from: string | Date, to: string | Date) {
+    return auditRepository.getByDateRange(from, to);
   },
 };

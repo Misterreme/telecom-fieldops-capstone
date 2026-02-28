@@ -1,5 +1,9 @@
 import { useState, type CSSProperties } from 'react';
-import type { Product } from '../services/apiClient';
+
+type Product = {
+  id: string;
+  name: string;
+};
 
 type Props = {
   products: Product[];

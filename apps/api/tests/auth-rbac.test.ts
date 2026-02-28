@@ -68,7 +68,7 @@ describe('Auth and RBAC integration', () => {
   it('Audit event is created for login (AUD-01 USERLOGIN)', async () => {
     await login('admin@telecom.local', 'Admin123!');
 
-    const audits = auditService.list();
+    const { items: audits } = auditService.list();
     const hasLoginAudit = audits.some((entry) => entry.action === 'AUD-01 USERLOGIN');
 
     expect(hasLoginAudit).toBe(true);
