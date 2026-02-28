@@ -1,15 +1,9 @@
-/**
- * types/catalog.ts
- * Tipos del catálogo de planes y productos.
- * Derivados del seed-data.json del proyecto.
- */
-
-// ─── Planes ───────────────────────────────────────────────────────────────────
 
 export type PlanType =
   | 'HOME_INTERNET'
   | 'MOBILE_DATA'
   | 'VOICE'
+  | 'TV'
   | 'BUSINESS';
 
 export type Currency = 'DOP' | 'USD';
@@ -53,6 +47,7 @@ export const PLAN_TYPE_LABELS: Record<PlanType, string> = {
   HOME_INTERNET: 'Internet Hogar',
   MOBILE_DATA:   'Datos Móvil',
   VOICE:         'Voz / Minutos',
+  TV:            'TV',
   BUSINESS:      'Empresarial',
 };
 

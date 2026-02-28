@@ -3,175 +3,90 @@
  * Usa datos del seed-data.json como fuente in-memory.
  */
 import { Router, Request, Response } from 'express';
-import { randomUUID } from 'crypto';
+import { z } from 'zod';
+import { plansService } from '../../domain/services/plans.service';
+import { validateBody, validateParams } from '../../middleware/validate';
 
 const router = Router();
 
-// ─── In-memory seed data ──────────────────────────────────────────────────────
-interface Plan {
-  id: string;
-  name: string;
-  type: string;
-  price: number;
-  currency: string;
-  isActive: boolean;
-  // Extended fields for plansService (types/plans.ts compat)
-  description: string;
-  category: string;
-  status: string;
-  monthlyPrice: number;
-  downloadSpeedMbps: number | null;
-  uploadSpeedMbps: number | null;
-  dataLimitGB: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
+const planTypeSchema = z.enum(['HOME_INTERNET', 'MOBILE_DATA', 'VOICE', 'TV', 'BUSINESS']);
+const currencySchema = z.enum(['DOP', 'USD']);
+const categorySchema = z.enum(['RESIDENCIAL', 'MOVIL', 'EMPRESARIAL', 'TV']);
+const statusSchema = z.enum(['ACTIVE', 'INACTIVE']);
 
-const SEED: Plan[] = [
-  {
-    id: 'plan_home_200', name: 'Internet Hogar 200Mbps', type: 'HOME_INTERNET',
-    price: 1850, currency: 'DOP', isActive: true,
-    description: 'Fibra óptica simétrica 200 Mbps', category: 'RESIDENCIAL',
-    status: 'ACTIVE', monthlyPrice: 1850,
-    downloadSpeedMbps: 200, uploadSpeedMbps: 200, dataLimitGB: null,
-    createdAt: '2025-01-15T10:00:00Z', updatedAt: '2025-01-15T10:00:00Z',
-  },
-  {
-    id: 'plan_home_500', name: 'Internet Hogar 500Mbps', type: 'HOME_INTERNET',
-    price: 2950, currency: 'DOP', isActive: true,
-    description: 'Fibra óptica simétrica 500 Mbps', category: 'RESIDENCIAL',
-    status: 'ACTIVE', monthlyPrice: 2950,
-    downloadSpeedMbps: 500, uploadSpeedMbps: 500, dataLimitGB: null,
-    createdAt: '2025-02-01T10:00:00Z', updatedAt: '2025-02-01T10:00:00Z',
-  },
-  {
-    id: 'plan_mobile_20gb', name: 'Móvil 20GB', type: 'MOBILE_DATA',
-    price: 1299, currency: 'DOP', isActive: true,
-    description: 'Plan móvil con 20 GB de datos 5G', category: 'MOVIL',
-    status: 'ACTIVE', monthlyPrice: 1299,
-    downloadSpeedMbps: null, uploadSpeedMbps: null, dataLimitGB: 20,
-    createdAt: '2025-03-01T10:00:00Z', updatedAt: '2025-03-01T10:00:00Z',
-  },
-  {
-    id: 'plan_voice_600', name: 'Voz 600 min', type: 'VOICE',
-    price: 799, currency: 'DOP', isActive: true,
-    description: '600 minutos nacionales e internacionales', category: 'MOVIL',
-    status: 'ACTIVE', monthlyPrice: 799,
-    downloadSpeedMbps: null, uploadSpeedMbps: null, dataLimitGB: null,
-    createdAt: '2025-03-15T10:00:00Z', updatedAt: '2025-03-15T10:00:00Z',
-  },
-  {
-    id: 'plan_business_1g', name: 'Business 1Gbps', type: 'BUSINESS',
-    price: 199, currency: 'USD', isActive: true,
-    description: 'Enlace dedicado 1 Gbps para empresas', category: 'EMPRESARIAL',
-    status: 'ACTIVE', monthlyPrice: 199,
-    downloadSpeedMbps: 1000, uploadSpeedMbps: 1000, dataLimitGB: null,
-    createdAt: '2025-04-01T10:00:00Z', updatedAt: '2025-04-01T10:00:00Z',
-  },
-];
+const planIdParamsSchema = z.object({
+  id: z.string().min(1),
+});
 
-const plans: Plan[] = [...SEED];
+const createPlanSchema = z.object({
+  name: z.string().min(1),
+  type: planTypeSchema,
+  price: z.number().nonnegative(),
+  currency: currencySchema,
+  isActive: z.boolean().optional(),
+  description: z.string().min(1).optional(),
+  category: categorySchema.optional(),
+  downloadSpeedMbps: z.number().int().nonnegative().nullable().optional(),
+  uploadSpeedMbps: z.number().int().nonnegative().nullable().optional(),
+  dataLimitGB: z.number().int().nonnegative().nullable().optional(),
+});
+
+const updatePlanSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    type: planTypeSchema.optional(),
+    price: z.number().nonnegative().optional(),
+    currency: currencySchema.optional(),
+    isActive: z.boolean().optional(),
+    description: z.string().min(1).optional(),
+    category: categorySchema.optional(),
+    status: statusSchema.optional(),
+    monthlyPrice: z.number().nonnegative().optional(),
+    downloadSpeedMbps: z.number().int().nonnegative().nullable().optional(),
+    uploadSpeedMbps: z.number().int().nonnegative().nullable().optional(),
+    dataLimitGB: z.number().int().nonnegative().nullable().optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, {
+    message: 'At least one field must be provided.',
+  });
 
 // ─── GET /plans ───────────────────────────────────────────────────────────────
 router.get('/plans', (_req: Request, res: Response) => {
-  res.json(plans);
+  res.json(plansService.listPlans());
 });
 
 // ─── GET /plans/:id ───────────────────────────────────────────────────────────
-router.get('/plans/:id', (req: Request, res: Response) => {
-  const plan = plans.find(p => p.id === req.params.id);
-  if (!plan) {
-    res.status(404).json({
-      type: 'about:blank', title: 'Plan no encontrado',
-      status: 404, detail: `No existe plan con id ${req.params.id}`,
-      instance: req.originalUrl, correlationId: randomUUID(),
-    });
-    return;
-  }
-  res.json(plan);
+router.get('/plans/:id', validateParams(planIdParamsSchema), (req: Request, res: Response) => {
+  res.json(plansService.getPlanById(req.params.id));
 });
 
 // ─── POST /plans ──────────────────────────────────────────────────────────────
-router.post('/plans', (req: Request, res: Response) => {
-  const now = new Date().toISOString();
-  const newPlan: Plan = {
-    id: `plan_${randomUUID().slice(0, 8)}`,
-    name: req.body.name ?? 'Nuevo Plan',
-    type: req.body.type ?? 'HOME_INTERNET',
-    price: req.body.price ?? 0,
-    currency: req.body.currency ?? 'DOP',
-    isActive: req.body.isActive ?? true,
-    description: req.body.description ?? '',
-    category: req.body.category ?? 'RESIDENCIAL',
-    status: req.body.isActive === false ? 'INACTIVE' : 'ACTIVE',
-    monthlyPrice: req.body.price ?? 0,
-    downloadSpeedMbps: req.body.downloadSpeedMbps ?? null,
-    uploadSpeedMbps: req.body.uploadSpeedMbps ?? null,
-    dataLimitGB: req.body.dataLimitGB ?? null,
-    createdAt: now,
-    updatedAt: now,
-  };
-  plans.push(newPlan);
-  res.status(201).json(newPlan);
+router.post('/plans', validateBody(createPlanSchema), (req: Request, res: Response) => {
+  const created = plansService.createPlan(req.body);
+  res.status(201).json(created);
 });
 
 // ─── PATCH /plans/:id ─────────────────────────────────────────────────────────
-router.patch('/plans/:id', (req: Request, res: Response) => {
-  const idx = plans.findIndex(p => p.id === req.params.id);
-  if (idx === -1) {
-    res.status(404).json({
-      type: 'about:blank', title: 'Plan no encontrado',
-      status: 404, detail: `No existe plan con id ${req.params.id}`,
-      instance: req.originalUrl, correlationId: randomUUID(),
-    });
-    return;
-  }
-  plans[idx] = { ...plans[idx], ...req.body, updatedAt: new Date().toISOString() };
-  res.json(plans[idx]);
+router.patch('/plans/:id', validateParams(planIdParamsSchema), validateBody(updatePlanSchema), (req: Request, res: Response) => {
+  const updated = plansService.updatePlan(req.params.id, req.body);
+  res.json(updated);
 });
 
 // ─── PATCH /plans/:id/activate ────────────────────────────────────────────────
-router.patch('/plans/:id/activate', (req: Request, res: Response) => {
-  const idx = plans.findIndex(p => p.id === req.params.id);
-  if (idx === -1) {
-    res.status(404).json({
-      type: 'about:blank', title: 'Plan no encontrado',
-      status: 404, detail: `No existe plan con id ${req.params.id}`,
-      instance: req.originalUrl, correlationId: randomUUID(),
-    });
-    return;
-  }
-  plans[idx] = { ...plans[idx], isActive: true, status: 'ACTIVE', updatedAt: new Date().toISOString() };
-  res.json(plans[idx]);
+router.patch('/plans/:id/activate', validateParams(planIdParamsSchema), (req: Request, res: Response) => {
+  const updated = plansService.activatePlan(req.params.id);
+  res.json(updated);
 });
 
 // ─── PATCH /plans/:id/deactivate ──────────────────────────────────────────────
-router.patch('/plans/:id/deactivate', (req: Request, res: Response) => {
-  const idx = plans.findIndex(p => p.id === req.params.id);
-  if (idx === -1) {
-    res.status(404).json({
-      type: 'about:blank', title: 'Plan no encontrado',
-      status: 404, detail: `No existe plan con id ${req.params.id}`,
-      instance: req.originalUrl, correlationId: randomUUID(),
-    });
-    return;
-  }
-  plans[idx] = { ...plans[idx], isActive: false, status: 'INACTIVE', updatedAt: new Date().toISOString() };
-  res.json(plans[idx]);
+router.patch('/plans/:id/deactivate', validateParams(planIdParamsSchema), (req: Request, res: Response) => {
+  const updated = plansService.deactivatePlan(req.params.id);
+  res.json(updated);
 });
 
 // ─── DELETE /plans/:id ────────────────────────────────────────────────────────
-router.delete('/plans/:id', (req: Request, res: Response) => {
-  const idx = plans.findIndex(p => p.id === req.params.id);
-  if (idx === -1) {
-    res.status(404).json({
-      type: 'about:blank', title: 'Plan no encontrado',
-      status: 404, detail: `No existe plan con id ${req.params.id}`,
-      instance: req.originalUrl, correlationId: randomUUID(),
-    });
-    return;
-  }
-  plans.splice(idx, 1);
+router.delete('/plans/:id', validateParams(planIdParamsSchema), (req: Request, res: Response) => {
+  plansService.deletePlan(req.params.id);
   res.status(204).send();
 });
 

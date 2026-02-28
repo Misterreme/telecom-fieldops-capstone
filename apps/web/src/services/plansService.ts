@@ -11,6 +11,7 @@ import { Plan }             from '../types/plans';
 import { apiClient }        from './apiClient';
 import { createCache }      from './cache';
 import { sanitizeObject }   from './sanitizer';
+import { PLAN_ENDPOINTS }   from './planEndpoints';
 
 // ─── Cache de planes (RNF-PERF-01: TTL 30 min) ───────────────────────────────
 const PLANS_TTL_MS = 30 * 60 * 1000;
@@ -41,7 +42,7 @@ export async function fetchPlans(
     if (cached) return cached;
   }
 
-  const data = await apiClient.get<Plan[]>('/api/v1/plans');
+  const data = await apiClient.get<Plan[]>(PLAN_ENDPOINTS.list);
   const sanitized = data.map(sanitizePlan);
   plansCache.set(sanitized);
   return sanitized;
@@ -52,7 +53,7 @@ export async function fetchPlans(
  * Invalida cache para que el próximo fetch traiga datos frescos.
  */
 export async function activatePlan(planId: string): Promise<Plan> {
-  const data = await apiClient.patch<Plan>(`/api/v1/plans/${planId}/activate`);
+  const data = await apiClient.patch<Plan>(PLAN_ENDPOINTS.activate(planId));
   plansCache.invalidate();
   return sanitizePlan(data);
 }
@@ -62,7 +63,7 @@ export async function activatePlan(planId: string): Promise<Plan> {
  * Invalida cache para que el próximo fetch traiga datos frescos.
  */
 export async function deactivatePlan(planId: string): Promise<Plan> {
-  const data = await apiClient.patch<Plan>(`/api/v1/plans/${planId}/deactivate`);
+  const data = await apiClient.patch<Plan>(PLAN_ENDPOINTS.deactivate(planId));
   plansCache.invalidate();
   return sanitizePlan(data);
 }

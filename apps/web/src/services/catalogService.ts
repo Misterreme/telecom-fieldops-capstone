@@ -6,6 +6,7 @@
 
 import { apiClient }      from './apiClient';
 import { sanitizeObject } from './sanitizer';
+import { PLAN_ENDPOINTS } from './planEndpoints';
 import {
   Plan, Product,
   CreatePlanDto, UpdatePlanDto,
@@ -19,27 +20,27 @@ const sanitizeProduct = (p: Product): Product => sanitizeObject(p, ['name']);
 // ─── Plans CRUD ───────────────────────────────────────────────────────────────
 
 export async function getPlans(): Promise<Plan[]> {
-  const data = await apiClient.get<Plan[]>('/api/v1/plans');
+  const data = await apiClient.get<Plan[]>(PLAN_ENDPOINTS.list);
   return data.map(sanitizePlan);
 }
 
 export async function getPlan(id: string): Promise<Plan> {
-  const data = await apiClient.get<Plan>(`/api/v1/plans/${id}`);
+  const data = await apiClient.get<Plan>(PLAN_ENDPOINTS.byId(id));
   return sanitizePlan(data);
 }
 
 export async function createPlan(dto: CreatePlanDto): Promise<Plan> {
-  const data = await apiClient.post<Plan>('/api/v1/plans', dto);
+  const data = await apiClient.post<Plan>(PLAN_ENDPOINTS.list, dto);
   return sanitizePlan(data);
 }
 
 export async function updatePlan(id: string, dto: UpdatePlanDto): Promise<Plan> {
-  const data = await apiClient.patch<Plan>(`/api/v1/plans/${id}`, dto);
+  const data = await apiClient.patch<Plan>(PLAN_ENDPOINTS.byId(id), dto);
   return sanitizePlan(data);
 }
 
 export async function deletePlan(id: string): Promise<void> {
-  await apiClient.delete(`/api/v1/plans/${id}`);
+  await apiClient.delete(PLAN_ENDPOINTS.byId(id));
 }
 
 // ─── Products CRUD ────────────────────────────────────────────────────────────
