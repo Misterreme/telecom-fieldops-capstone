@@ -8,7 +8,9 @@ function loadRolesFromSeed(): Role[] {
   const candidates = [
     process.env.SEED_DATA_PATH,
     path.resolve(__dirname, '../../../../../../scripts/seed-data.json'), // monorepo: dist/infra/repositories -> repo root
-    path.resolve(__dirname, '../../../scripts/seed-data.json'),       // container: dist/infra/repositories -> /app/scripts
+    path.resolve(__dirname, '../../../../../scripts/seed-data.json'),    // src/infra/repositories (Jest)
+    path.resolve(__dirname, '../../../scripts/seed-data.json'),          // container: /app/dist/infra/repositories
+    path.resolve(process.cwd(), '../../scripts/seed-data.json'),         // from apps/api -> repo root
   ].filter(Boolean) as string[];
 
   for (const seedPath of candidates) {
