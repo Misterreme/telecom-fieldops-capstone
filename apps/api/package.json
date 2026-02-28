@@ -16,7 +16,7 @@
     "test:watch": "jest --watch"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.20.0"
   },
   "dependencies": {
     "@prisma/client": "^7.4.2",
