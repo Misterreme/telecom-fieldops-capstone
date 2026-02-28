@@ -168,9 +168,25 @@ export class InventoryService {
   }
 
   private loadSeedData(): SeedData {
-    const seedPath = path.resolve(__dirname, '../../../../../scripts/seed-data.json');
-    const raw = fs.readFileSync(seedPath, 'utf-8');
-    return JSON.parse(raw) as SeedData;
+    const candidates = [
+      process.env.SEED_DATA_PATH,
+      path.resolve(__dirname, '../../../../../scripts/seed-data.json'), // monorepo: dist/domain/services -> repo root
+      path.resolve(__dirname, '../../../scripts/seed-data.json')     // container: dist/domain/services -> /app, then scripts/
+    ].filter(Boolean) as string[];
+
+    for (const seedPath of candidates) {
+      try {
+        if (fs.existsSync(seedPath)) {
+          const raw = fs.readFileSync(seedPath, 'utf-8');
+          return JSON.parse(raw) as SeedData;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    // Fallback when file is missing (e.g. in container without scripts copied): start with empty data
+    return { products: [], inventory: [], branches: [] };
   }
 }
 
