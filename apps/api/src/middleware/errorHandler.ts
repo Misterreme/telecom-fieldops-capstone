@@ -60,7 +60,7 @@ const coreErrorHandler = (error: unknown, req: Request, res: Response, _next: Ne
   }
 
   if (error instanceof ApiError) {
-    res.status(error.status).json(error.toProblemDetails(req.originalUrl || req.path, req.correlationId ?? 'c_unknown'));
+    res.status(error.status).json(error.toProblemDetails(req.originalUrl || req.path, req.correlationId));
     return;
   }
 

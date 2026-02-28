@@ -1,15 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
+import type { Request } from "express";
 import { logger, baseReqLog } from "../infra/logger/logger";
-import { Request, Response, NextFunction } from 'express';
-
-export const auditMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const correlationId = (req.headers['x-correlation-id'] as string) || uuidv4();
-  
-  (req as any).correlationId = correlationId; 
-  res.setHeader('X-Correlation-Id', correlationId);
-
-  next();
-};
 
 type AuditPayload = {
   action: string;

@@ -15,6 +15,48 @@ export interface Role {
   permissionKeys: string[];
 }
 
+export type PlanType = 'HOME_INTERNET' | 'MOBILE_DATA' | 'VOICE' | 'TV' | 'BUSINESS';
+export type PlanCurrency = 'DOP' | 'USD';
+export type PlanCategory = 'RESIDENCIAL' | 'MOVIL' | 'EMPRESARIAL' | 'TV';
+export type PlanStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface Plan {
+  id: string;
+  name: string;
+  type: PlanType;
+  price: number;
+  currency: PlanCurrency;
+  isActive: boolean;
+  description: string;
+  category: PlanCategory;
+  status: PlanStatus;
+  monthlyPrice: number;
+  downloadSpeedMbps: number | null;
+  uploadSpeedMbps: number | null;
+  dataLimitGB: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ProductCategory =
+  | 'ROUTER'
+  | 'MODEM'
+  | 'ONT'
+  | 'STB'
+  | 'ANTENNA'
+  | 'CABLE'
+  | 'PHONE'
+  | 'TABLET'
+  | 'LAPTOP'
+  | 'SIM';
+
+export interface Product {
+  id: string;
+  name: string;
+  category: ProductCategory;
+  isSerialized: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -105,7 +147,7 @@ export interface LoggerContext {
 declare global {
   namespace Express {
     interface Request {
-      correlationId?: string;
+      correlationId: string;
       user?: AuthenticatedUser;
     }
   }

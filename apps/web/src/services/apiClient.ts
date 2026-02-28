@@ -1,0 +1,85 @@
+/**
+ * apiClient.ts
+ * Cliente HTTP base del proyecto.
+ * Adjunta el token Bearer automáticamente y lanza ApiError en respuestas no-ok.
+ * RNF-OBS-01: Incluye correlationId en cada request.
+ */
+
+import { ApiError, ProblemDetails } from '../types/plans';
+
+const BASE_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getAuthHeaders(): HeadersInit {
+  const token = localStorage.getItem('access_token');
+  const correlationId = crypto.randomUUID();
+
+  return {
+    'Content-Type': 'application/json',
+    'X-Correlation-Id': correlationId,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.ok) return res.json() as Promise<T>;
+
+  const body: ProblemDetails = await res.json().catch(() => ({
+    type:          'about:blank',
+    title:         'Error inesperado',
+    status:        res.status,
+    detail:        'No se pudo procesar la respuesta del servidor.',
+    instance:      res.url,
+    correlationId: '',
+  }));
+
+  throw new ApiError(body.detail || body.title, res.status, body);
+}
+
+// ─── Métodos públicos ─────────────────────────────────────────────────────────
+
+export const apiClient = {
+  async get<T>(path: string): Promise<T> {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method:  'GET',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<T>(res);
+  },
+
+  async patch<T>(path: string, body?: unknown): Promise<T> {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method:  'PATCH',
+      headers: getAuthHeaders(),
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+    return handleResponse<T>(res);
+  },
+
+  async post<T>(path: string, body?: unknown): Promise<T> {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method:  'POST',
+      headers: getAuthHeaders(),
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+    return handleResponse<T>(res);
+  },
+
+  async put<T>(path: string, body?: unknown): Promise<T> {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method:  'PUT',
+      headers: getAuthHeaders(),
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+    return handleResponse<T>(res);
+  },
+
+  async delete<T>(path: string): Promise<T> {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method:  'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<T>(res);
+  },
+};
