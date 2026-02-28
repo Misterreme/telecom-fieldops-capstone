@@ -11,8 +11,8 @@ export function buildApiRouter() {
   const router = Router();
 
   router.use(healthRouter());
-  router.use(plansRouter);
-  router.use(productsRouter);
+  router.use('/catalog', plansRouter);
+  router.use('/catalog', productsRouter);
   router.use('/auth', authRouter());
   router.use(inventoryRouter());
   router.use('/users', usersRouter);

@@ -1,81 +1,63 @@
 import { Router, Request, Response } from 'express';
-import { randomUUID } from 'crypto';
+import { z } from 'zod';
+import { productsService } from '../domain/services/products.service';
+import { validateBody, validateParams } from '../middleware/validate';
 
 const router = Router();
 
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  isSerialized: boolean;
-}
+const productCategorySchema = z.enum([
+  'ROUTER',
+  'MODEM',
+  'ONT',
+  'STB',
+  'ANTENNA',
+  'CABLE',
+  'PHONE',
+  'TABLET',
+  'LAPTOP',
+  'SIM',
+]);
 
-const SEED: Product[] = [
-  { id: 'prod_router_ax',      name: 'Router WiFi 6 AX',   category: 'ROUTER',  isSerialized: true },
-  { id: 'prod_modem_docsis',    name: 'Modem DOCSIS',       category: 'MODEM',   isSerialized: true },
-  { id: 'prod_ont_fiber',       name: 'ONT Fibra',          category: 'ONT',     isSerialized: true },
-  { id: 'prod_stb_tv',          name: 'Decodificador TV',   category: 'STB',     isSerialized: true },
-  { id: 'prod_cable_fiber_10m', name: 'Cable Fibra 10m',    category: 'CABLE',   isSerialized: false },
-  { id: 'prod_cable_copper_10m',name: 'Cable UTP 10m',      category: 'CABLE',   isSerialized: false },
-  { id: 'prod_sim_5g',          name: 'SIM 5G',             category: 'SIM',     isSerialized: true },
-  { id: 'prod_antenna_sector',  name: 'Antena Sectorial',   category: 'ANTENNA', isSerialized: true },
-];
+const productIdParamsSchema = z.object({
+  id: z.string().min(1),
+});
 
-const products: Product[] = [...SEED];
+const createProductSchema = z.object({
+  name: z.string().min(1),
+  category: productCategorySchema,
+  isSerialized: z.boolean(),
+});
+
+const updateProductSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    category: productCategorySchema.optional(),
+    isSerialized: z.boolean().optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, {
+    message: 'At least one field must be provided.',
+  });
 
 router.get('/products', (_req: Request, res: Response) => {
-  res.json(products);
+  res.json(productsService.listProducts());
 });
 
-router.get('/products/:id', (req: Request, res: Response) => {
-  const product = products.find(p => p.id === req.params.id);
-  if (!product) {
-    res.status(404).json({
-      type: 'about:blank', title: 'Producto no encontrado',
-      status: 404, detail: `No existe producto con id ${req.params.id}`,
-      instance: req.originalUrl, correlationId: randomUUID(),
-    });
-    return;
-  }
-  res.json(product);
+router.get('/products/:id', validateParams(productIdParamsSchema), (req: Request, res: Response) => {
+  res.json(productsService.getProductById(req.params.id));
 });
 
-router.post('/products', (req: Request, res: Response) => {
-  const newProduct: Product = {
-    id: `prod_${randomUUID().slice(0, 8)}`,
-    name: req.body.name ?? 'Nuevo Producto',
-    category: req.body.category ?? 'ROUTER',
-    isSerialized: req.body.isSerialized ?? false,
-  };
-  products.push(newProduct);
-  res.status(201).json(newProduct);
+router.post('/products', validateBody(createProductSchema), (req: Request, res: Response) => {
+  const created = productsService.createProduct(req.body);
+  res.status(201).json(created);
 });
 
-router.patch('/products/:id', (req: Request, res: Response) => {
-  const idx = products.findIndex(p => p.id === req.params.id);
-  if (idx === -1) {
-    res.status(404).json({
-      type: 'about:blank', title: 'Producto no encontrado',
-      status: 404, detail: `No existe producto con id ${req.params.id}`,
-      instance: req.originalUrl, correlationId: randomUUID(),
-    });
-    return;
-  }
-  products[idx] = { ...products[idx], ...req.body };
-  res.json(products[idx]);
+router.patch('/products/:id', validateParams(productIdParamsSchema), validateBody(updateProductSchema), (req: Request, res: Response) => {
+  const updated = productsService.updateProduct(req.params.id, req.body);
+  res.json(updated);
 });
 
-router.delete('/products/:id', (req: Request, res: Response) => {
-  const idx = products.findIndex(p => p.id === req.params.id);
-  if (idx === -1) {
-    res.status(404).json({
-      type: 'about:blank', title: 'Producto no encontrado',
-      status: 404, detail: `No existe producto con id ${req.params.id}`,
-      instance: req.originalUrl, correlationId: randomUUID(),
-    });
-    return;
-  }
-  products.splice(idx, 1);
+router.delete('/products/:id', validateParams(productIdParamsSchema), (req: Request, res: Response) => {
+  productsService.deleteProduct(req.params.id);
   res.status(204).send();
 });
 

@@ -598,7 +598,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
 
-  /plans:
+  /catalog/plans:
     get:
       tags: [Plans]
       summary: List plans
@@ -626,7 +626,7 @@ paths:
               schema: { $ref: "#/components/schemas/Plan" }
         "400": { $ref: "#/components/responses/BadRequest" }
 
-  /plans/{id}:
+  /catalog/plans/{id}:
     get:
       tags: [Plans]
       summary: Get plan by id
@@ -676,7 +676,7 @@ paths:
           description: plan deleted
         "404": { $ref: "#/components/responses/NotFound" }
 
-  /plans/{id}/activate:
+  /catalog/plans/{id}/activate:
     patch:
       tags: [Plans]
       summary: Activate plan
@@ -693,7 +693,7 @@ paths:
               schema: { $ref: "#/components/schemas/Plan" }
         "404": { $ref: "#/components/responses/NotFound" }
 
-  /plans/{id}/deactivate:
+  /catalog/plans/{id}/deactivate:
     patch:
       tags: [Plans]
       summary: Deactivate plan

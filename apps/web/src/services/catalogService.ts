@@ -46,25 +46,25 @@ export async function deletePlan(id: string): Promise<void> {
 // ─── Products CRUD ────────────────────────────────────────────────────────────
 
 export async function getProducts(): Promise<Product[]> {
-  const data = await apiClient.get<Product[]>('/api/v1/products');
+  const data = await apiClient.get<Product[]>('/api/v1/catalog/products');
   return data.map(sanitizeProduct);
 }
 
 export async function getProduct(id: string): Promise<Product> {
-  const data = await apiClient.get<Product>(`/api/v1/products/${id}`);
+  const data = await apiClient.get<Product>(`/api/v1/catalog/products/${id}`);
   return sanitizeProduct(data);
 }
 
 export async function createProduct(dto: CreateProductDto): Promise<Product> {
-  const data = await apiClient.post<Product>('/api/v1/products', dto);
+  const data = await apiClient.post<Product>('/api/v1/catalog/products', dto);
   return sanitizeProduct(data);
 }
 
 export async function updateProduct(id: string, dto: UpdateProductDto): Promise<Product> {
-  const data = await apiClient.patch<Product>(`/api/v1/products/${id}`, dto);
+  const data = await apiClient.patch<Product>(`/api/v1/catalog/products/${id}`, dto);
   return sanitizeProduct(data);
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await apiClient.delete(`/api/v1/products/${id}`);
+  await apiClient.delete(`/api/v1/catalog/products/${id}`);
 }

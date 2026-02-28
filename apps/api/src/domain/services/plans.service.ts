@@ -1,8 +1,8 @@
 import { ApiError } from '../errors/apiError';
+import type { Plan } from '../models/types';
 import {
   plansRepository,
   type CreatePlanInput,
-  type Plan,
   type UpdatePlanInput,
 } from '../../infra/repositories/plans.repo';
 

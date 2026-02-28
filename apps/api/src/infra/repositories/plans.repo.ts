@@ -1,29 +1,7 @@
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-
-export type PlanType = 'HOME_INTERNET' | 'MOBILE_DATA' | 'VOICE' | 'TV' | 'BUSINESS';
-export type PlanCurrency = 'DOP' | 'USD';
-export type PlanCategory = 'RESIDENCIAL' | 'MOVIL' | 'EMPRESARIAL' | 'TV';
-export type PlanStatus = 'ACTIVE' | 'INACTIVE';
-
-export interface Plan {
-  id: string;
-  name: string;
-  type: PlanType;
-  price: number;
-  currency: PlanCurrency;
-  isActive: boolean;
-  description: string;
-  category: PlanCategory;
-  status: PlanStatus;
-  monthlyPrice: number;
-  downloadSpeedMbps: number | null;
-  uploadSpeedMbps: number | null;
-  dataLimitGB: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Plan, PlanCategory, PlanCurrency, PlanStatus, PlanType } from '../../domain/models/types';
 
 export interface CreatePlanInput {
   name: string;
