@@ -33,13 +33,13 @@ export default function InventoryReservationPage() {
   const [selectedBranchId, setSelectedBranchId] = useState('');
   const [inventoryRows, setInventoryRows] = useState<InventoryRow[]>([]);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [branchRows, productRows] = await Promise.all([
-          apiClient.getBranches(),
-          apiClient.getProducts()
+        const [branchRows] = await Promise.all([
+          apiClient.get<Branch[]>('/api/v1/inventory/branches'),
         ]);
         setBranches(branchRows);
         const firstBranchId = branchRows[0]?.id ?? '';
@@ -89,10 +89,10 @@ export default function InventoryReservationPage() {
     setLoading(true);
     setMessage('');
     try {
-      await apiClient.reserveInventory({
+      await apiClient.post('/api/v1/inventory/reservations', {
         workOrderId: input.workOrderId,
         branchId: selectedBranchId,
-        items: [{ productId: input.productId, qty: input.qty }]
+        items: [{ productId: input.productId, qty: input.qty }],
       });
       await refreshInventory();
       setMessage('Reserva creada correctamente.');
@@ -107,7 +107,7 @@ export default function InventoryReservationPage() {
     setLoading(true);
     setMessage('');
     try {
-      await apiClient.releaseReservation(workOrderId);
+      await apiClient.delete(`/api/v1/inventory/reservations/${encodeURIComponent(workOrderId)}`);
       await refreshInventory();
       setMessage('Reserva liberada correctamente.');
     } catch (error) {
