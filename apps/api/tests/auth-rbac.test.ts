@@ -46,6 +46,18 @@ describe('Auth and RBAC integration', () => {
     });
   });
 
+  it('POST /users/:id/block with wrong id (user-ventas-01) returns 404', async () => {
+    const adminLogin = await login('admin@telecom.local', 'Admin123!');
+
+    const res = await request(app)
+      .post('/api/v1/users/user-ventas-01/block')
+      .set('Authorization', `Bearer ${adminLogin.body.accessToken}`)
+      .send();
+
+    expect(res.status).toBe(404);
+    expect(res.body.detail).toMatch(/not found|User not found/i);
+  });
+
   it('RF-02 blocked user receives 403 on protected endpoint with old token', async () => {
     const ventasLogin = await login('ventas@telecom.local', 'Ventas123!');
     const adminLogin = await login('admin@telecom.local', 'Admin123!');
@@ -72,5 +84,33 @@ describe('Auth and RBAC integration', () => {
     const hasLoginAudit = audits.some((entry) => entry.action === 'AUD-01 USERLOGIN');
 
     expect(hasLoginAudit).toBe(true);
+  });
+
+  it('RF-14 GET /audit returns 200 with admin token and list shape', async () => {
+    const adminLogin = await login('admin@telecom.local', 'Admin123!');
+
+    const response = await request(app)
+      .get('/api/v1/audit')
+      .set('Authorization', `Bearer ${adminLogin.body.accessToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('items');
+    expect(response.body).toHaveProperty('pagination');
+    expect(Array.isArray(response.body.items)).toBe(true);
+    expect(response.body.pagination).toMatchObject({
+      total: expect.any(Number),
+      limit: expect.any(Number),
+      offset: expect.any(Number),
+    });
+  });
+
+  it('GET /audit returns 403 when user lacks audit:read', async () => {
+    const ventasLogin = await login('ventas@telecom.local', 'Ventas123!');
+
+    const response = await request(app)
+      .get('/api/v1/audit')
+      .set('Authorization', `Bearer ${ventasLogin.body.accessToken}`);
+
+    expect(response.status).toBe(403);
   });
 });
