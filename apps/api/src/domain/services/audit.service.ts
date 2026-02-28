@@ -42,11 +42,11 @@ export const auditService = {
     return auditRepository.getHistory(entityType, entityId);
   },
 
-  getByUser(actorUserId: string) {
-    return auditRepository.getByUser(actorUserId);
+  getByUser(actorUserId: string, limit?: number) {
+    return auditRepository.getByUser(actorUserId, limit);
   },
 
-  getByDateRange(from: string, to: string) {
+  getByDateRange(from: string | Date, to: string | Date) {
     return auditRepository.getByDateRange(from, to);
   },
 };

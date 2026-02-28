@@ -4,6 +4,9 @@ import type { AuditEvent } from '../../domain/models/types';
 export interface ListAuditOptions {
   limit?: number;
   offset?: number;
+  entityType?: string;
+  entityId?: string;
+  action?: string;
 }
 
 export const auditRepository = {
@@ -13,7 +16,10 @@ export const auditRepository = {
   },
 
   list(opts?: ListAuditOptions): { items: AuditEvent[]; total: number } {
-    const all = [...getDb().audits];
+    let all = [...getDb().audits];
+    if (opts?.entityType) all = all.filter((e) => e.entityType === opts.entityType);
+    if (opts?.entityId) all = all.filter((e) => e.entityId === opts.entityId);
+    if (opts?.action) all = all.filter((e) => e.action === opts.action);
     const total = all.length;
     const offset = opts?.offset ?? 0;
     const limit = opts?.limit ?? total;
@@ -25,17 +31,22 @@ export const auditRepository = {
     return getDb().audits.find((e) => e.id === id);
   },
 
-  getHistory(entityType: string, entityId: string): AuditEvent[] {
-    return getDb().audits.filter(
+  getHistory(entityType: string, entityId: string): { events: AuditEvent[]; total: number } {
+    const events = getDb().audits.filter(
       (e) => e.entityType === entityType && e.entityId === entityId
     );
+    return { events, total: events.length };
   },
 
-  getByUser(actorUserId: string): AuditEvent[] {
-    return getDb().audits.filter((e) => e.actorUserId === actorUserId);
+  getByUser(actorUserId: string, limit?: number): AuditEvent[] {
+    const events = getDb().audits.filter((e) => e.actorUserId === actorUserId);
+    if (limit != null && limit > 0) return events.slice(0, limit);
+    return events;
   },
 
-  getByDateRange(from: string, to: string): AuditEvent[] {
-    return getDb().audits.filter((e) => e.at >= from && e.at <= to);
+  getByDateRange(from: string | Date, to: string | Date): AuditEvent[] {
+    const fromStr = typeof from === 'string' ? from : from.toISOString();
+    const toStr = typeof to === 'string' ? to : to.toISOString();
+    return getDb().audits.filter((e) => e.at >= fromStr && e.at <= toStr);
   },
 };
