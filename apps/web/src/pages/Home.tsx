@@ -31,6 +31,13 @@ const NAV_CARDS: NavCard[] = [
     path: '/reserve',
     accent: 'emerald',
   },
+  {
+    title: 'Ver inventario por sucursal',
+    description: 'Revisa cuántos productos hay disponibles en cada sucursal.',
+    icon: '📦',
+    path: '/inventory',
+    accent: 'emerald',
+  },
 ];
 
 const ACCENT_STYLES: Record<string, { border: string; bg: string; text: string }> = {

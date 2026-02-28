@@ -1,5 +1,3 @@
-import type { CSSProperties } from 'react';
-
 type InventoryRow = {
   id: string;
   productName: string;
@@ -14,42 +12,31 @@ type Props = {
 
 export default function InventoryTable({ rows }: Props) {
   if (rows.length === 0) {
-    return <p>No hay inventario para la sucursal seleccionada.</p>;
+    return <p className="text-slate-400">No hay inventario para la sucursal seleccionada.</p>;
   }
 
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
-      <thead>
-        <tr>
-          <th style={cellHeader}>Producto</th>
-          <th style={cellHeader}>Disponible</th>
-          <th style={cellHeader}>Reservado</th>
-          <th style={cellHeader}>Actualizado</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <tr key={row.id}>
-            <td style={cell}>{row.productName}</td>
-            <td style={cell}>{row.qtyAvailable}</td>
-            <td style={cell}>{row.qtyReserved}</td>
-            <td style={cell}>{new Date(row.updatedAt).toLocaleString()}</td>
+    <div className="overflow-x-auto mt-4">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-slate-800">
+            <th className="text-left px-4 py-2 text-[0.7rem] uppercase tracking-widest text-slate-500">Producto</th>
+            <th className="text-right px-4 py-2 text-[0.7rem] uppercase tracking-widest text-slate-500">Disponible</th>
+            <th className="text-right px-4 py-2 text-[0.7rem] uppercase tracking-widest text-slate-500">Reservado</th>
+            <th className="text-right px-4 py-2 text-[0.7rem] uppercase tracking-widest text-slate-500">Actualizado</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id} className="border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors">
+              <td className="px-4 py-3 text-slate-200">{row.productName}</td>
+              <td className="px-4 py-3 text-right">{row.qtyAvailable}</td>
+              <td className="px-4 py-3 text-right">{row.qtyReserved}</td>
+              <td className="px-4 py-3 text-right">{new Date(row.updatedAt).toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
-
-const cellHeader: CSSProperties = {
-  borderBottom: '1px solid #ddd',
-  textAlign: 'left',
-  padding: '0.5rem',
-  backgroundColor: '#007bff',
-  color: 'white'
-};
-
-const cell: CSSProperties = {
-  borderBottom: '1px solid #eee',
-  padding: '0.5rem'
-};

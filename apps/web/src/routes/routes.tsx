@@ -3,6 +3,7 @@ import App from "../App";
 import LoginPage from "../pages/Login";
 import HomePage from "../pages/Home";
 import InventoryReservationPage from "../pages/InventoryReservationPage";
+import InventoryPage from "../pages/InventoryPage";
 import { PlansPage } from "../pages/PlansPage";
 import { CatalogPage } from "../pages/CatalogPage";
 
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
             {
                 path: "reserve",
                 element: <InventoryReservationPage />
+            },
+            {
+                path: "inventory",
+                element: <InventoryPage />
             }
         ]
     }
