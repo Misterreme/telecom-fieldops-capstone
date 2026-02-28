@@ -1,11 +1,7 @@
-/**
- * plans.ts – Fake endpoints para /plans
- * Usa datos del seed-data.json como fuente in-memory.
- */
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { plansService } from '../../domain/services/plans.service';
-import { validateBody, validateParams } from '../../middleware/validate';
+import { plansService } from '../domain/services/plans.service';
+import { validateBody, validateParams } from '../middleware/validate';
 
 const router = Router();
 
@@ -50,41 +46,34 @@ const updatePlanSchema = z
     message: 'At least one field must be provided.',
   });
 
-// ─── GET /plans ───────────────────────────────────────────────────────────────
 router.get('/plans', (_req: Request, res: Response) => {
   res.json(plansService.listPlans());
 });
 
-// ─── GET /plans/:id ───────────────────────────────────────────────────────────
 router.get('/plans/:id', validateParams(planIdParamsSchema), (req: Request, res: Response) => {
   res.json(plansService.getPlanById(req.params.id));
 });
 
-// ─── POST /plans ──────────────────────────────────────────────────────────────
 router.post('/plans', validateBody(createPlanSchema), (req: Request, res: Response) => {
   const created = plansService.createPlan(req.body);
   res.status(201).json(created);
 });
 
-// ─── PATCH /plans/:id ─────────────────────────────────────────────────────────
 router.patch('/plans/:id', validateParams(planIdParamsSchema), validateBody(updatePlanSchema), (req: Request, res: Response) => {
   const updated = plansService.updatePlan(req.params.id, req.body);
   res.json(updated);
 });
 
-// ─── PATCH /plans/:id/activate ────────────────────────────────────────────────
 router.patch('/plans/:id/activate', validateParams(planIdParamsSchema), (req: Request, res: Response) => {
   const updated = plansService.activatePlan(req.params.id);
   res.json(updated);
 });
 
-// ─── PATCH /plans/:id/deactivate ──────────────────────────────────────────────
 router.patch('/plans/:id/deactivate', validateParams(planIdParamsSchema), (req: Request, res: Response) => {
   const updated = plansService.deactivatePlan(req.params.id);
   res.json(updated);
 });
 
-// ─── DELETE /plans/:id ────────────────────────────────────────────────────────
 router.delete('/plans/:id', validateParams(planIdParamsSchema), (req: Request, res: Response) => {
   plansService.deletePlan(req.params.id);
   res.status(204).send();

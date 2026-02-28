@@ -1,13 +1,8 @@
-/**
- * products.ts – Fake endpoints para /products
- * Usa datos del seed-data.json como fuente in-memory.
- */
 import { Router, Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 
 const router = Router();
 
-// ─── In-memory seed data ──────────────────────────────────────────────────────
 interface Product {
   id: string;
   name: string;
@@ -28,12 +23,10 @@ const SEED: Product[] = [
 
 const products: Product[] = [...SEED];
 
-// ─── GET /products ────────────────────────────────────────────────────────────
 router.get('/products', (_req: Request, res: Response) => {
   res.json(products);
 });
 
-// ─── GET /products/:id ────────────────────────────────────────────────────────
 router.get('/products/:id', (req: Request, res: Response) => {
   const product = products.find(p => p.id === req.params.id);
   if (!product) {
@@ -47,7 +40,6 @@ router.get('/products/:id', (req: Request, res: Response) => {
   res.json(product);
 });
 
-// ─── POST /products ───────────────────────────────────────────────────────────
 router.post('/products', (req: Request, res: Response) => {
   const newProduct: Product = {
     id: `prod_${randomUUID().slice(0, 8)}`,
@@ -59,7 +51,6 @@ router.post('/products', (req: Request, res: Response) => {
   res.status(201).json(newProduct);
 });
 
-// ─── PATCH /products/:id ──────────────────────────────────────────────────────
 router.patch('/products/:id', (req: Request, res: Response) => {
   const idx = products.findIndex(p => p.id === req.params.id);
   if (idx === -1) {
@@ -74,7 +65,6 @@ router.patch('/products/:id', (req: Request, res: Response) => {
   res.json(products[idx]);
 });
 
-// ─── DELETE /products/:id ─────────────────────────────────────────────────────
 router.delete('/products/:id', (req: Request, res: Response) => {
   const idx = products.findIndex(p => p.id === req.params.id);
   if (idx === -1) {

@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { healthRouter } from './health';
-import plansRouter from './plans';
-import productsRouter from './products';
 import { authRouter } from '../../routes/auth.routes';
 import { inventoryRouter } from '../../routes/inventory.routes';
+import plansRouter from '../../routes/plans.routes';
+import productsRouter from '../../routes/products.routes';
 import usersRouter from '../../routes/users.routes';
 import rolesRouter from '../../routes/roles.route';
 
