@@ -2,11 +2,16 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { inventoryService } from '../domain/services/invetory.service';
 import { validateBody, validateParams, validate } from '../middleware/validate';
+import { authenticate } from '../middleware/auth';
+import { requirePermissions } from '../middleware/rbac';
 
 
 export function inventoryRouter() {
 
 const router = Router();
+
+// all inventory operations require authentication
+router.use(authenticate);
 
 const inventoryQuerySchema = z.object({
   branchId: z.string().min(1),
@@ -25,15 +30,15 @@ const releaseReservationParamsSchema = z.object({
   workOrderId: z.string().min(1),
 });
 
-router.get('/inventory/branches', (_req: Request, res: Response) => {
+router.get('/inventory/branches', requirePermissions(['inventory:read']), (_req: Request, res: Response) => {
   res.status(200).json(inventoryService.listBranches());
 });
 
-router.get('/inventory/products', (_req: Request, res: Response) => {
+router.get('/inventory/products', requirePermissions(['inventory:read']), (_req: Request, res: Response) => {
   res.status(200).json(inventoryService.listProducts());
 });
 
-router.get('/inventory', validate(inventoryQuerySchema, 'query'), (req: Request, res: Response) => {
+router.get('/inventory', requirePermissions(['inventory:read']), validate(inventoryQuerySchema, 'query'), (req: Request, res: Response) => {
   const branchId = String(req.query.branchId);
   res.status(200).json(inventoryService.listInventory(branchId));
 });
