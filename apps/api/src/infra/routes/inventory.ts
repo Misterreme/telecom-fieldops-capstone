@@ -21,30 +21,31 @@ router.get('/inventory', (req: Request, res: Response) => {
   res.status(200).json(inventoryService.listInventory(branchId));
 });
 
-router.post('/inventory/reservations', (req: Request, res: Response) => {
-  try {
-    const result = inventoryService.reserveForRequest({
-      workOrderId: String(req.body?.workOrderId ?? ''),
-      branchId: String(req.body?.branchId ?? ''),
-      items: Array.isArray(req.body?.items) ? req.body.items : []
-    });
-    res.status(201).json(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unexpected error';
-    const status = message.includes('Insufficient stock') ? 409 : 400;
-    res.status(status).json({ message });
-  }
-});
+// reservation endpoints disabled because only RF-06 is required
+// router.post('/inventory/reservations', (req: Request, res: Response) => {
+//   try {
+//     const result = inventoryService.reserveForRequest({
+//       workOrderId: String(req.body?.workOrderId ?? ''),
+//       branchId: String(req.body?.branchId ?? ''),
+//       items: Array.isArray(req.body?.items) ? req.body.items : []
+//     });
+//     res.status(201).json(result);
+//   } catch (error) {
+//     const message = error instanceof Error ? error.message : 'Unexpected error';
+//     const status = message.includes('Insufficient stock') ? 409 : 400;
+//     res.status(status).json({ message });
+//   }
+// });
 
-router.delete('/inventory/reservations/:workOrderId', (req: Request, res: Response) => {
-  try {
-    const result = inventoryService.releaseForRequest(req.params.workOrderId);
-    res.status(200).json(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unexpected error';
-    const status = message.includes('not found') ? 404 : 400;
-    res.status(status).json({ message });
-  }
-});
+// router.delete('/inventory/reservations/:workOrderId', (req: Request, res: Response) => {
+//   try {
+//     const result = inventoryService.releaseForRequest(req.params.workOrderId);
+//     res.status(200).json(result);
+//   } catch (error) {
+//     const message = error instanceof Error ? error.message : 'Unexpected error';
+//     const status = message.includes('not found') ? 404 : 400;
+//     res.status(status).json({ message });
+//   }
+// });
 
 export default router;
