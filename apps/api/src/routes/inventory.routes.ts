@@ -10,8 +10,8 @@ export function inventoryRouter() {
 
 const router = Router();
 
-  // all inventory operations require authentication
-  router.use(authenticate);
+// all inventory operations require authentication
+router.use(authenticate);
 
 const inventoryQuerySchema = z.object({
   branchId: z.string().min(1),
