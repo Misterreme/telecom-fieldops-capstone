@@ -101,28 +101,6 @@ model Reservation {
   reservedAt  DateTime @default(now()) @map("reserved_at")
 }
 
-model WorkOrder {
-  id                 String   @id
-  type               String
-  status             String
-  customerId         String
-  branchId           String?  @map("branch_id")
-  planId             String?  @map("plan_id")
-  assignedTechUserId String?  @map("assigned_tech_user_id")
-  version            Int      @default(0)
-  items              Json?    @default("[]")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
-}
-
-model WorkOrderItem {
-  id          String     @id
-  workOrder   WorkOrder  @relation(fields: [workOrderId], references: [id])
-  workOrderId String     @map("work_order_id")
-  productId   String     @map("product_id")
-  qty         Int
-}
-
 model AuditLog {
   id            BigInt   @id @default(autoincrement())
   at            DateTime @default(now())
