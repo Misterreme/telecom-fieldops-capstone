@@ -38,6 +38,13 @@ const NAV_CARDS: NavCard[] = [
     path: '/inventory',
     accent: 'emerald',
   },
+  {
+    title: 'Órdenes de Trabajo',
+    description: 'Crea y gestiona solicitudes por tipo siguiendo el flujo definido.',
+    icon: '📝',
+    path: '/work-orders',
+    accent: 'rose',
+  },
 ];
 
 const ACCENT_STYLES: Record<string, { border: string; bg: string; text: string }> = {

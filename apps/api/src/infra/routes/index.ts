@@ -7,6 +7,7 @@ import plansRouter from '../../routes/plans.routes';
 import productsRouter from '../../routes/products.routes';
 import usersRouter from '../../routes/users.routes';
 import rolesRouter from '../../routes/roles.route';
+import workOrdersRouter from '../../routes/workorders.routes';
 import { authenticate } from '../../middleware/auth';
 import { requirePermissions } from '../../middleware/rbac';
 
@@ -18,6 +19,7 @@ export function buildApiRouter() {
   router.use('/catalog', productsRouter);
   router.use('/auth', authRouter());
   router.use(inventoryRouter());
+  router.use('/work-orders', workOrdersRouter);
   router.use('/users', usersRouter);
   router.use('/roles', rolesRouter);
 
