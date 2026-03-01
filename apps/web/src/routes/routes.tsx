@@ -6,6 +6,7 @@ import InventoryReservationPage from "../pages/InventoryReservationPage";
 import InventoryPage from "../pages/InventoryPage";
 import { PlansPage } from "../pages/PlansPage";
 import { CatalogPage } from "../pages/CatalogPage";
+import WorkOrdersPage from "../pages/WorkOrdersPage";
 
 export const router = createBrowserRouter([
     {
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
             {
                 path: "inventory",
                 element: <InventoryPage />
+            },
+            {
+                path: "work-orders",
+                element: <WorkOrdersPage />
             }
         ]
     }

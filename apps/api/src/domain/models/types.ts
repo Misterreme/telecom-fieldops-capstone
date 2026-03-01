@@ -5,6 +5,8 @@ export const AUDIT_ACTIONS = {
   USER_LOGOUT: 'AUD-02 USERLOGOUT',
   USER_BLOCKED: 'AUD-03 USERBLOCKED',
   ROLE_ASSIGNED: 'AUD-04 ROLEASSIGNED',
+  WORKORDER_CREATED: 'AUD-05 WORKORDER_CREATED',
+  WORKORDER_STATUS: 'AUD-06 WORKORDER_STATUS',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -142,6 +144,61 @@ export interface LoggerContext {
   userId?: string;
   action?: string;
   [key: string]: unknown;
+}
+
+// --- Work order domain types ------------------------------------------------
+
+export type WorkOrderType =
+  | 'NEW_SERVICE_INSTALL'
+  | 'CLAIM_TROUBLESHOOT'
+  | 'PLAN_AND_EQUIPMENT_SALE'
+  | 'EQUIPMENT_ONLY_SALE'
+  | 'MONTHLY_PAYMENT'
+  | 'SERVICE_UPGRADE'
+  | 'SERVICE_DOWN_OUTAGE';
+
+export type WorkOrderStatus =
+  | 'DRAFT'
+  | 'SUBMITTED'
+  | 'ELIGIBILITY_CHECK'
+  | 'INVENTORY_RESERVATION'
+  | 'ON_HOLD'
+  | 'SCHEDULED'
+  | 'IN_PROGRESS'
+  | 'VERIFICATION'
+  | 'COMPLETED'
+  | 'REJECTED'
+  | 'IN_REVIEW'
+  | 'TECH_ASSIGNMENT'
+  | 'PRODUCT_SELECTION'
+  | 'PAYMENT_CONFIRMATION'
+  | 'FULFILLMENT'
+  | 'DELIVERY'
+  | 'PAYMENT_VALIDATION'
+  | 'RECEIPT_ISSUED'
+  | 'PLAN_CHANGE'
+  | 'TRIAGE'
+  | 'FIELD_DISPATCH'
+  | 'CONFLICT'
+  | 'CANCELLED';
+
+export interface WorkOrderItem {
+  productId: string;
+  qty: number;
+}
+
+export interface WorkOrder {
+  id: string;
+  type: WorkOrderType;
+  status: WorkOrderStatus;
+  customerId: string;
+  branchId?: string;
+  planId?: string;
+  assignedTechUserId?: string;
+  version: number;
+  items?: WorkOrderItem[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 declare global {
