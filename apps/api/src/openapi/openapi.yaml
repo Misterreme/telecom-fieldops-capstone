@@ -383,31 +383,31 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
-    Unauthorized:
+  Unauthorized:
       description: Unauthorized
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
-    Forbidden:
+  Forbidden:
       description: Forbidden
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
-    Conflict:
+  Conflict:
       description: Conflict
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
-    NotFound:
+  NotFound:
       description: Not found
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
-    TooManyRequests:
+  TooManyRequests:
       description: Too many requests
       content:
         application/json:
